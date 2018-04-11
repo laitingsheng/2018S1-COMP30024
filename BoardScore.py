@@ -1,2 +1,0 @@
-class BoardScore:
-    pass
