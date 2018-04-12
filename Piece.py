@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
+
 class Cell(metaclass=ABCMeta):
     __slots__ = ()
 
@@ -19,13 +20,16 @@ class Cell(metaclass=ABCMeta):
     def __str__(self):
         return self.sym
 
+
 class Space(Cell):
     __slots__ = ()
     sym = '-'
 
+
 class Block(Cell):
     __slots__ = ()
     sym = 'X'
+
 
 class Piece(Cell, metaclass=ABCMeta):
     __slots__ = "num"
@@ -37,15 +41,18 @@ class Piece(Cell, metaclass=ABCMeta):
             return self.sym == o
         return self.sym == o.sym and self.num == o.num
 
+
 class White(Piece):
     __slots__ = ()
     opponent = '@'
     sym = 'O'
 
+
 class Black(Piece):
     __slots__ = ()
     opponent = 'O'
     sym = '@'
+
 
 class CellFactory:
     __slots__ = ()

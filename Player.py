@@ -1,5 +1,6 @@
 import numpy
 
+
 class Player:
     __slots__ = "board", "mine", "oppo"
 

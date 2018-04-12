@@ -1,12 +1,13 @@
 from Piece import CellFactory
 
+
 class Board:
     def __init__(self, player):
         # initialise of board
         self.board = [CelllFactory.create('-')] * 64
         self.empty = [True] * 64
-        self.board[0] = self.board[7] = self.board[56] = self.board[63]
-                      = CellFactory.create('X')
+        self.board[0] = self.board[7] = self.board[56] = self.board[63] \
+            = CellFactory.create('X')
 
         self.mine_type = player.mine
         self.oppo_type = player.oppo
