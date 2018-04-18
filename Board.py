@@ -18,6 +18,10 @@ class Board:
         self.num_mine = 0
         self.num_oppo = 0
 
+        # for board shrinking
+        self.turn = 0
+        self.size = 8
+
     def __repr__(self):
         re = ""
         i = 1
@@ -41,8 +45,13 @@ class Board:
         # (row, column)
         return int(math.floor(index / 8)), index % 8
 
-    def place(self):
+    def _check_elim(self, pos):
         pass
 
-    def move(self):
-        pass
+    def place(self, pos, piece):
+        self.board[pos] = piece
+        self._check_elim(pos)
+
+    def move(self, src, dest):
+        self.board[src], self.board[dest] = self.board[dest], self.board[src]
+        self._check_elim(dest)
