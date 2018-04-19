@@ -24,7 +24,27 @@ class Player:
         self.border = 0
 
     def _check_elim(self, row, col):
-        dirs = [(row - 1), (), (), ()]
+        ps = []
+
+        if 1 < row < 8:
+            p1, p2 = self.board[[(row - 1, col), (row - 2, col)]]
+            if p1 == self.oppo and (p2 == self.mine or p2 == 'X'):
+                ps.append(p1)
+
+        if 1 < row < 8:
+            p1, p2 = self.board[[(row - 1, col), (row - 2, col)]]
+            if p1 == self.oppo and (p2 == self.mine or p2 == 'X'):
+                ps.append(p1)
+
+        if 1 < row < 8:
+            p1, p2 = self.board[[(row - 1, col), (row - 2, col)]]
+            if p1 == self.oppo and (p2 == self.mine or p2 == 'X'):
+                ps.append(p1)
+
+        if 1 < row < 8:
+            p1, p2 = self.board[[(row - 1, col), (row - 2, col)]]
+            if p1 == self.oppo and (p2 == self.mine or p2 == 'X'):
+                ps.append(p1)
 
     def _delete_rec(self, p):
         self.pieces[p.sym][p.num] = None
