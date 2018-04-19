@@ -24,21 +24,21 @@ class Player:
         self.border = 0
 
     def _check_elim(self, row, col):
-        pass
+        dirs = [(row - 1), (), (), ()]
 
     def _delete_rec(self, p):
         self.pieces[p.sym][p.num] = None
         self.num_pieces[p.sym] -= 1
 
     def _shrink(self):
-        b = self.border
-        block = CellFactory.create('X')
-        for i in range(b, 7 - b):
-            pos = [(b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)]
-            ps = self.board[pos]
-            self.board[pos] = block
-            numpy.apply_over_axes()
+        map(self._shrink_edge, range(self.border, 8 - self.border))
         self.border += 1
+
+    def _shrink_edge(self, b):
+        pos = [(b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)]
+        ps = self.board[pos]
+        self.board[pos] = CellFactory.create('X')
+        map(self._delete_rec, ps)
 
     def action(self, turns):
         pass
