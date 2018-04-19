@@ -19,20 +19,25 @@ class Player:
         self.num_pieces = {'O': 0, '@': 0}
 
         # for board shrinking
+        self.placing = True
         self.turn = 0
         self.border = 0
 
     def _check_elim(self, row, col):
         pass
 
-    def _delete_rec(self, row, col):
+    def _delete_rec(self, (row, col)):
         p = self.board[(row, col)]
         self.pieces[p.sym][p.num] = None
         self.num_pieces[p.sym] -= 1
 
     def _shrink(self):
-        for i in range(self.border, 8 - self.border):
-            numpy.apply_over_axes
+        b = self.border
+        block = CellFactory.create('X')
+        for i in range(b, 7 - b):
+            pos = [(b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)]
+            map(self._delete_rec, pos)
+            self.board[pos] = block
         self.border += 1
 
     def action(self, turns):
