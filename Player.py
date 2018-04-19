@@ -31,13 +31,13 @@ class Player:
             if p1 == self.oppo and (p2 == self.mine or p2 == 'X'):
                 ps.append(p1)
 
-        if 1 < row < 8:
-            p1, p2 = self.board[[(row - 1, col), (row - 2, col)]]
+        if -1 < row < 6:
+            p1, p2 = self.board[[(row + 1, col), (row + 2, col)]]
             if p1 == self.oppo and (p2 == self.mine or p2 == 'X'):
                 ps.append(p1)
 
-        if 1 < row < 8:
-            p1, p2 = self.board[[(row - 1, col), (row - 2, col)]]
+        if 1 < col < 8:
+            p1, p2 = self.board[[(row, col - 1), (row, col - 2)]]
             if p1 == self.oppo and (p2 == self.mine or p2 == 'X'):
                 ps.append(p1)
 
