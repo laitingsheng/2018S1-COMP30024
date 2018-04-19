@@ -1,4 +1,5 @@
 import numpy
+from operator import itemgetter
 
 from Cell import CellFactory
 
@@ -25,40 +26,69 @@ class Player:
 
     def _check_elim(self, row, col):
         ps = []
+        poss = []
+        p = self.board[(row, col)]
+        s = self.border
 
-        if 1 < row < 8:
-            p1, p2 = self.board[[(row - 1, col), (row - 2, col)]]
-            if p1 == self.oppo and (p2 == self.mine or p2 == 'X'):
+        # eliminate opponent of current piece if applicable
+        if s + 1 < row < 8 - s:  # up
+            np = (row - 1, col)
+            p1, p2 = self.board[[np, (row - 2, col)]]
+            if p1 == p.opponent and (p2 == p.sym or p2 == 'X'):
+                poss.append(np)
                 ps.append(p1)
-
-        if -1 < row < 6:
-            p1, p2 = self.board[[(row + 1, col), (row + 2, col)]]
-            if p1 == self.oppo and (p2 == self.mine or p2 == 'X'):
+        if s - 1 < row < 6 - s:  # down
+            np = (row + 1, col)
+            p1, p2 = self.board[[np, (row + 2, col)]]
+            if p1 == p.opponent and (p2 == p.sym or p2 == 'X'):
+                poss.append(np)
                 ps.append(p1)
-
-        if 1 < col < 8:
-            p1, p2 = self.board[[(row, col - 1), (row, col - 2)]]
-            if p1 == self.oppo and (p2 == self.mine or p2 == 'X'):
+        if s + 1 < col < 8 - s:  # left
+            np = (row, col - 1)
+            p1, p2 = self.board[[np, (row, col - 2)]]
+            if p1 == p.opponent and (p2 == p.sym or p2 == 'X'):
+                poss.append(np)
                 ps.append(p1)
-
-        if 1 < row < 8:
-            p1, p2 = self.board[[(row - 1, col), (row - 2, col)]]
-            if p1 == self.oppo and (p2 == self.mine or p2 == 'X'):
+        if s - 1 < col < 6 - s:  # right
+            np = (row, col + 1)
+            p1, p2 = self.board[[np, (row, col + 2)]]
+            if p1 == p.opponent and (p2 == p.sym or p2 == 'X'):
+                poss.append(np)
                 ps.append(p1)
+        self.board[poss] = CellFactory.create('-')
+        for i in ps:
+            self._delete_rec(i)
 
-    def _delete_rec(self, p):
+        # check if itself is eliminated
+        elim = False
+        if s < row < 7 - s:
+            p1, p2 = self.board[[(row - 1, col), (row + 1, col)]]
+            if (p1 == p.opponent or p1 == 'X') and \
+               (p2 == p.opponent or p2 == 'X'):
+                elim = True
+        if not elim and s < col < 7 - s:
+            p1, p2 = self.board[[(row, col - 1), (row, col + 1)]]
+            if (p1 == p.opponent or p1 == 'X') and \
+               (p2 == p.opponent or p2 == 'X'):
+                elim = True
+        if elim:
+            self.board[(row, col)] = CellFactory.create('-')
+            self._delete_rec(p)
+
+    def _delete_rec(self, p, *args):
         self.pieces[p.sym][p.num] = None
         self.num_pieces[p.sym] -= 1
 
     def _shrink(self):
-        map(self._shrink_edge, range(self.border, 8 - self.border))
+        b = self.border
+        for i in range(b, 8 - b):
+            pos = [(b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)]
+            ps = self.board[pos]
+            self.board[pos] = '#'
+            numpy.apply_over_axes(self._delete_rec, ps, 0)
         self.border += 1
 
     def _shrink_edge(self, b):
-        pos = [(b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)]
-        ps = self.board[pos]
-        self.board[pos] = CellFactory.create('X')
-        map(self._delete_rec, ps)
 
     def action(self, turns):
         pass
