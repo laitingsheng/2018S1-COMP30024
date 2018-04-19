@@ -26,8 +26,7 @@ class Player:
     def _check_elim(self, row, col):
         pass
 
-    def _delete_rec(self, (row, col)):
-        p = self.board[(row, col)]
+    def _delete_rec(self, p):
         self.pieces[p.sym][p.num] = None
         self.num_pieces[p.sym] -= 1
 
@@ -36,8 +35,9 @@ class Player:
         block = CellFactory.create('X')
         for i in range(b, 7 - b):
             pos = [(b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)]
-            map(self._delete_rec, pos)
+            ps = self.board[pos]
             self.board[pos] = block
+            numpy.apply_over_axes()
         self.border += 1
 
     def action(self, turns):
