@@ -135,3 +135,19 @@ class Board:
             self._elim(x, y)
 
         self.border += b
+
+    def valid_place(self):
+        board = self.board
+        return [
+            (x, y) for x, y in product(range(8), range(8))
+            if board[x][y] == 0x20
+        ]
+
+    def valid_move(self, type):
+        board = self.board
+        return [
+            (a, b) for a, b in (
+                (x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)
+            ) if self._inboard(a, b) and board[a][b] == '-'
+            for x, y in filter(None, self.pieces[type])
+        ]
