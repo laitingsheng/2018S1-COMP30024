@@ -2,7 +2,7 @@ from Board import Board
 
 
 class Player:
-    def __init__(self, colour):
+    def __init__(self, colour, depth=20):
         if colour == 'O':
             self.mine = 0x0
             self.oppo = 0x10
@@ -11,20 +11,25 @@ class Player:
             self.oppo = 0x0
 
         self.board = Board()
+        self.depth = depth
         self.turn_thres = self.turn_step = 128
 
-    def _place(self):
-        pos = None
+    def _move(self, turns):
+        src, dest = self._move_search(self.depth, turns)
+        self.board.move(*src, *dest)
+        return(src, dest)
 
+    def _move_search(self, depth, turns):
+        pass
+
+    def _place(self):
+        pos = self._place_search(self.depth)
         self.board.place(*pos, self.mine)
         self.mine += 1
         return pos
 
-    def _move(self, turns):
-        src, dest = None
-
-        self.board.move(*src, *dest)
-        return(src, dest)
+    def _place_search(self, depth):
+        pass
 
     def action(self, turns):
         if self.mine < 12:

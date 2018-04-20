@@ -55,11 +55,17 @@ class Board:
 
     def _elim(self, x, y):
         board = self.board
+
+        # record the pieces which is removed
+        re = []
         for dx, dy in ((0, -1), (1, 0), (0, 1), (-1, 0)):
             nx, ny = x + dx, y + dy
             if self._surrounded(nx, ny, dx, dy):
-                self._delete_rec(board[nx][ny])
+                p = board[nx][ny]
+                self._delete_rec(p)
                 board[nx][ny] = 0x20
+                re.append((p, (nx, ny)))
+        return re
 
     def _delete_rec(self, p):
         t = p // 0x10
@@ -99,13 +105,16 @@ class Board:
     def place(self, x, y, piece):
         board = self.board
         board[x][y] = piece
-        self._elim(x, y)
+        re = self._elim(x, y)
         # the piece is eliminated immediately, no manipulation of record
         if self._surrounded(x, y, 1, 0) or self._surrounded(x, y, 0, 1):
             board[x][y] = 0x20
+            return (None, re)
+
         # add record with respect to this piece
-        else:
-            self._add_rec(piece, (x, y))
+        pos = (x, y)
+        self._add_rec(piece, pos)
+        return (pos, re)
 
     def shrink(self):
         b = self.border
