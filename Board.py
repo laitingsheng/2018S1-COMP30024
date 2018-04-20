@@ -105,6 +105,15 @@ class Board:
     def move(self, sx, sy, dx, dy):
         board = self.board
         board[sx][sy], board[dx][dy] = board[dx][dy], board[sx][sy]
+        p = board[dx][dy]
+        t = p // 0x10
+        p %= 0x10
+        self.pieces[t][p] = (dx, dy)
+
+        self.elim(dx, dy)
+        if self._surrounded(x, y, 1, 0) or self._surrounded(x, y, 0, 1):
+            board[x][y] = 0x20
+            self._delete_rec(p)
 
     def place(self, x, y, piece):
         board = self.board
