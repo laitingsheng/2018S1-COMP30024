@@ -21,8 +21,6 @@ class Board:
         self.num_pieces = [0, 0]
 
         # for board shrinking
-        self.placing = True
-        self.turn = 0
         self.border = 0
 
     def __repr__(self):
