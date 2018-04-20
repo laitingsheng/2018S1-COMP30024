@@ -1,4 +1,22 @@
 class Board:
+    """
+        The board stored internally in player
+
+        Representations of pieces (for minimal storage and fast comparison):
+        0x00 - 0x0C: represents white pieces ('O') with numbering
+        0x10 - 0x1C: represents black pieces ('@') with numbering
+        0x20       : represents space '-'
+        0x30       : represents block 'X'
+        0x40       : represents position which has been removed in shrinking
+
+        Most of the places which can apply lambda function were replaced by
+        regular functions (in fact, class methods) since lambda is inefficient
+
+        The __slots__ prevents the creation of __dict__ which can further
+        decrease the memory usage of this object and fast access of members
+        (not added yet, will be finalised)
+    """
+
     mappings = ['O', '@', '-', 'X', '#']
 
     @classmethod
@@ -20,7 +38,7 @@ class Board:
         self.oppo = [(1, 3), (0, 3)]
         self.num_pieces = [0, 0]
 
-        # for board shrinking
+        # record number of shrinks
         self.border = 0
 
     def __repr__(self):
@@ -45,6 +63,7 @@ class Board:
 
     def _delete_rec(self, p):
         t = p // 0x10
+        # all other types doesn't have records, so ignore
         if t > 1:
             return
         p %= 0x10
@@ -59,11 +78,13 @@ class Board:
         b = self.border
         board = self.board
 
+        # first shrink the edges
         for i in range(b, 7 - b):
             for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
                 self._delete_rec(board[x][y])
                 board[x][y] = 0x40
 
+        # determine if the shrinking leads to eliminations of current pieces
         b += 1
         for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
             self._delete_rec(board[x][y])
@@ -82,6 +103,7 @@ class Board:
 
         board = self.board
         p = board[x][y]
+        # ignore '-'
         if p == 0x20:
             return False
         p1 = board[x1][y1]
@@ -93,8 +115,10 @@ class Board:
         board = self.board
         board[x][y] = piece
         self._elim(x, y)
+        # the piece is eliminated immediately, so manipulation of record
         if self._surrounded(x, y, 1, 0) or self._surrounded(x, y, 0, 1):
             board[x][y] = 0x20
+        # add record with respect to this piece
         else:
             self._add_rec(piece, (x, y))
 
