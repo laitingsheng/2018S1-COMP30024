@@ -98,7 +98,7 @@ class _Options:
 def _load_player(modulename, package='.'):
     """
     Load a Player class given the name of a module.
-    
+
     :param modulename: where to look for the Player class (name of a module)
     :param package: where to look for the module (relative package)
     :return: the Player class (a class object)
@@ -112,7 +112,7 @@ def _load_player(modulename, package='.'):
 # REFEREE'S INTERNAL GAME STATE REPRESENTATION
 
 #                        NOT INTENDED FOR STUDENT USE
-# 
+#
 # This part of the referee is designed to store the state of a game for the
 # purpose of validating actions and providing helpful error messages for when
 # players suggest invalid actions. It is not intended to be used by Players.
@@ -126,7 +126,7 @@ class _Game:
         """
         Initializes the representation of the game.
 
-        This 'state' includes the current configuration of the board and 
+        This 'state' includes the current configuration of the board and
         information pertaining to the game's progression between phases
         """
         # board configuration (initially empty)
@@ -190,7 +190,7 @@ class _Game:
     def _place(self, place):
         """
         Validate a 'place' action and update board configuration accordingly.
-        
+
         :param place: (x, y) tuple representing the square on which to place
         the piece
         """
@@ -234,7 +234,7 @@ class _Game:
             assert(all(isinstance(coordinate, int) for coordinate in a+b))
         except:
             self._invalidate(f"invalid move action representation: {move!r}")
-        
+
         # validate move itself
         piece = self._piece()
         if not (self._within_board(xa, ya) and self._within_board(xb, yb)):
@@ -317,8 +317,8 @@ class _Game:
         """
         Check the board to see if the game has concluded.
 
-        Count the number of pieces remaining for each player: if either player 
-        has run out of pieces, decide the winner and transition to the 
+        Count the number of pieces remaining for each player: if either player
+        has run out of pieces, decide the winner and transition to the
         'completed' state
         """
         n_whites = self.pieces['W']
@@ -338,11 +338,11 @@ class _Game:
     def _invalidate(self, reason):
         """
         In response to an error, invalidate the game state.
-        
+
         Transition to the 'invalid' state, declare the non-current player
-        the winner (the current player has played an invalid action), and 
+        the winner (the current player has played an invalid action), and
         raise an exception describing the problem
-        
+
         :param reason: message describing what went wrong (to be included in
         the exception).
         :raises _InvalidActionException: (every time)
@@ -368,7 +368,7 @@ class _Game:
                 if piece in self.pieces:
                     self.pieces[piece] -= 1
                 self.board[y][x] = ' '
-        
+
         # we have now shrunk the board once more!
         self.n_shrinks = s = s + 1
 
@@ -383,15 +383,15 @@ class _Game:
 
     def _eliminate_about(self, square):
         """
-        A piece has entered this square: look around to eliminate adjacent 
+        A piece has entered this square: look around to eliminate adjacent
         (surrounded) enemy pieces, then possibly eliminate this piece too.
-        
+
         :param square: the square to look around
         """
         x, y = square
         piece = self.board[y][x]
         targets = self._targets(piece)
-        
+
         # Check if piece in square eliminates other pieces
         for dx, dy in [(-1, 0), (1, 0), (0, 1), (0, -1)]:
             target_x, target_y = x + dx, y + dy
@@ -413,7 +413,7 @@ class _Game:
         """
         Check if piece on (x, y) is surrounded on (x + dx, y + dy) and
         (x - dx, y - dy).
-        
+
         :param x: column of the square to be checked
         :param y: row of the square to be checked
         :param dx: 1 if adjacent cols are to be checked (dy should be 0)
@@ -451,7 +451,7 @@ class _Game:
     def _targets(self, piece):
         """
         Which pieces can a piece of this type eliminate?
-        
+
         :param piece: the type of piece ('B', 'W', or 'X')
         :return: the set of piece types that a piece of this type can eliminate
         """
@@ -466,7 +466,7 @@ class _Game:
     def _is_move(self, move):
         """
         Check if a move is a 'simple' move in terms of distance.
-        
+
         :return: True is the move is a correct 'simple' move
         """
         (xa, ya), (xb, yb) = move
@@ -479,7 +479,7 @@ class _Game:
     def _is_jump(self, move):
         """
         Check if a move is a 'jump' move in terms of distance.
-        
+
         :return: True iff the move is a correct 'jump' move
         """
         (xa, ya), (xb, yb) = move
