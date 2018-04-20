@@ -2,6 +2,8 @@ from Board import Board
 
 
 class Player:
+    __slots__ = "board", "depth", "mine", "oppo", "turn_step", "turn_thres"
+
     def __init__(self, colour, depth=20):
         if colour == 'O':
             self.mine = 0x0
@@ -17,7 +19,7 @@ class Player:
     def _move(self, turns):
         src, dest = self._move_search(self.depth, turns)
         self.board.move(*src, *dest)
-        return(src, dest)
+        return (src, dest)
 
     def _move_search(self, depth, turns):
         pass
