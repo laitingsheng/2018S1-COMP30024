@@ -74,25 +74,6 @@ class Board:
         b = self.border
         return b - 1 < x < 8 - b and b - 1 < y < 8 - b
 
-    def _shrink(self):
-        b = self.border
-        board = self.board
-
-        # first shrink the edges
-        for i in range(b, 7 - b):
-            for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
-                self._delete_rec(board[x][y])
-                board[x][y] = 0x40
-
-        # determine if the shrinking leads to eliminations of current pieces
-        b += 1
-        for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
-            self._delete_rec(board[x][y])
-            board[x][y] = 0x30
-            self._elim(x, y)
-
-        self.border += b
-
     def _surrounded(self, x, y, dx, dy):
         x1, y1 = x + dx, y + dy
         if not self._inboard(x1, y1):
@@ -111,6 +92,10 @@ class Board:
         oppo = self.oppo[p // 0x10]
         return p1 // 0x10 in oppo and p2 // 0x10 in oppo
 
+    def move(self, sx, sy, dx, dy):
+        board = self.board
+        board[sx][sy], board[dx][dy] = board[dx][dy], board[sx][sy]
+
     def place(self, x, y, piece):
         board = self.board
         board[x][y] = piece
@@ -122,6 +107,21 @@ class Board:
         else:
             self._add_rec(piece, (x, y))
 
-    def move(self, sx, sy, dx, dy):
+    def shrink(self):
+        b = self.border
         board = self.board
-        board[sx][sy], board[dx][dy] = board[dx][dy], board[sx][sy]
+
+        # first shrink the edges
+        for i in range(b, 7 - b):
+            for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
+                self._delete_rec(board[x][y])
+                board[x][y] = 0x40
+
+        # determine if the shrinking leads to eliminations of current pieces
+        b += 1
+        for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
+            self._delete_rec(board[x][y])
+            board[x][y] = 0x30
+            self._elim(x, y)
+
+        self.border += b
