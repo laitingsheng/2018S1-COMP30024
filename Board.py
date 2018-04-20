@@ -115,7 +115,7 @@ class Board:
         board = self.board
         board[x][y] = piece
         self._elim(x, y)
-        # the piece is eliminated immediately, so manipulation of record
+        # the piece is eliminated immediately, no manipulation of record
         if self._surrounded(x, y, 1, 0) or self._surrounded(x, y, 0, 1):
             board[x][y] = 0x20
         # add record with respect to this piece
