@@ -14,10 +14,12 @@ class Board:
 
         The __slots__ prevents the creation of __dict__ which can further
         decrease the memory usage of this object and fast access of members
-        (not added yet, will be finalised)
     """
 
+    __slots__ = "board", "border", "num_pieces", "pieces"
+
     mappings = ['O', '@', '-', 'X', '#']
+    oppo = [(1, 3), (0, 3)]
 
     @classmethod
     def _conv(cls, r):
@@ -35,7 +37,6 @@ class Board:
 
         # maximum 12 pieces
         self.pieces = [[None] * 12, [None] * 12]
-        self.oppo = [(1, 3), (0, 3)]
         self.num_pieces = [0, 0]
 
         # record number of shrinks
@@ -55,17 +56,11 @@ class Board:
 
     def _elim(self, x, y):
         board = self.board
-
-        # record the pieces which is removed
-        re = []
         for dx, dy in ((0, -1), (1, 0), (0, 1), (-1, 0)):
             nx, ny = x + dx, y + dy
             if self._surrounded(nx, ny, dx, dy):
-                p = board[nx][ny]
-                self._delete_rec(p)
+                self._delete_rec(board[nx][ny])
                 board[nx][ny] = 0x20
-                re.append((p, (nx, ny)))
-        return re
 
     def _delete_rec(self, p):
         t = p // 0x10
@@ -98,6 +93,15 @@ class Board:
         oppo = self.oppo[p // 0x10]
         return p1 // 0x10 in oppo and p2 // 0x10 in oppo
 
+    def copy(self):
+        # create without initialisation
+        b = object.__new__(Board)
+        # deepcopy
+        b.board = [[i for i in j] for j in self.board]
+        b.pieces = [[i for i in j] for j in self.pieces]
+        b.num_pieces = [i for i in self.num_pieces]
+        b.border = self.border
+
     def move(self, sx, sy, dx, dy):
         board = self.board
         board[sx][sy], board[dx][dy] = board[dx][dy], board[sx][sy]
@@ -105,16 +109,13 @@ class Board:
     def place(self, x, y, piece):
         board = self.board
         board[x][y] = piece
-        re = self._elim(x, y)
+        self._elim(x, y)
         # the piece is eliminated immediately, no manipulation of record
         if self._surrounded(x, y, 1, 0) or self._surrounded(x, y, 0, 1):
             board[x][y] = 0x20
-            return (None, re)
-
         # add record with respect to this piece
-        pos = (x, y)
-        self._add_rec(piece, pos)
-        return (pos, re)
+        else:
+            self._add_rec(piece, (x, y))
 
     def shrink(self):
         b = self.border
