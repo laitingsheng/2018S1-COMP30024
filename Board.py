@@ -17,6 +17,10 @@ class Board:
 
         The __slots__ prevents the creation of __dict__ which can further
         decrease the memory usage of this object and fast access of members
+
+        valid_move and valid_place return iterator for minimal storage
+        requirement and fast access, so call copy() before altering the board,
+        or otherwise the behaviour is undefined
     """
 
     __slots__ = "board", "border", "num_pieces", "pieces"
@@ -166,19 +170,19 @@ class Board:
         self.border += b
 
     def valid_place(self, type):
+        # black piece
         if type:
             return (
                 (x, y) for x, y in product(range(2, 8), range(8))
                 if self.board[x][y] == 0x20
             )
+        # white piece
         return (
             (x, y) for x, y in product(range(6), range(8))
             if self.board[x][y] == 0x20
         )
 
     def valid_move(self, type):
-        # this function returns iterator, so call copy() before altering the
-        # board, or otherwise the behaviour is undefined
         return (((x, y), filter(
             None, (self._try_move(x, y, dx, dy) for dx, dy in self.dirs)
         )) for x, y in filter(None, self.pieces[type]))
