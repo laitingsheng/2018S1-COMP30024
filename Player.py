@@ -1,13 +1,8 @@
 from Board import Board
-# import __lt__ and __gt__ instead of lt and gt to avoid naming conflict
-from operator import __lt__, __gt__
 
 
 class Player:
-    __slots__ = "_types", "board", "depth", "mine", "oppo", "turn_step", \
-                "turn_thres"
-    _cmps = None, __gt__, __lt__
-    _init_scores = None, -inf, inf
+    __slots__ = "board", "depth", "mine", "oppo", "turn_step", "turn_thres"
 
     def __init__(self, colour, depth=5):
         if colour == 'O':
@@ -16,63 +11,49 @@ class Player:
         else:
             self.mine = 0x10
             self.oppo = 0x0
-        self._types = None, self.mine // 0x10, self.oppo // 0x10
 
         self.board = Board()
         self.depth = depth
         self.turn_thres = self.turn_step = 128
 
-    def _benchmark(self, board, turns):
+    def _eval(self, board, turns):
         pass
 
     def _move(self, turns):
         board = self.board
-        score = -inf
-        turns += 1
-        for src, dests in board.valid_move(self.mine // 0x10):
-            for dest in dests:
-                b = board.copy()
-                b.move(*src, *dest)
-                re = self._move_search(b, 1, turns, score, 1)
-                if re > score:
-                    score = re
-                    s, d = src, dest
 
         self.board.move(*s, *d)
         return (s, d)
 
-    def _move_search(self, board, depth, turns, parent_score, parent_sign):
+    def _move_max(self, board, depth, turns, alpha, beta):
         if depth == self.depth:
-            return self._benchmark(board, turns)
+            return self._eval(board, turns)
 
-        parent_cmp = self._cmps[parent_sign]
-        sign = -parent_sign
-        cmp = self._cmps[sign]
-        type = self._types[sign]
-        score = self._init_score[sign]
-
-        depth += 1
-        turns += 1
-        for src, dests in board.valid_move(type):
+        for src, dests in board.valid_move(self.mine // 0x10):
             for dest in dests:
                 b = board.copy()
-                b.move(*src, *dest)
-                re = self._move_search(b, depth, turns, score, sign)
+                b.move(*src, *dests)
+                re = self._move_min(board, depth, turns, alpha, beta)
+                if re > alpha:
+                    alpha = re
+                    if alpha >= beta:
+                        return beta
+        return alpha
 
-                # two circumstances
-                # * current is a min node, then
-                #   1. child score < current score, update the score
-                #   2. if updated score not greater than the parent score,
-                #      simply return current score (beta)
-                # * current is a max node, then
-                #   1. child score > current score, update the score
-                #   2. if updated score not smaller than the parent score,
-                #      simply return current score (alpha)
-                if cmp(re, score):
-                    score = re
-                    if not parent_cmp(score, parent_score):
-                        return score
-        return score
+    def _move_min(self, board, depth, turns, alpha, beta):
+        if depth == self.depth:
+            return self._eval(board, turns)
+
+        for src, dests in board.valid_move(self.oppo // 0x10):
+            for dest in dests:
+                b = board.copy()
+                b.move(*src, *dests)
+                re = self._move_max(board, depth, turns, alpha, beta)
+                if re < alpha:
+                    beta = re
+                    if beta <= alpha:
+                        return beta
+        return beta
 
     def _place(self):
         pos = self._place_search(self.depth)
