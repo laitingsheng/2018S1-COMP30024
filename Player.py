@@ -1,10 +1,13 @@
 from Board import Board
+# import __lt__ and __gt__ instead of lt and gt to avoid naming conflict
+from operator import __lt__, __gt__
 
 
 class Player:
     __slots__ = "board", "depth", "mine", "oppo", "turn_step", "turn_thres"
+    cmps = None, __gt__, __lt__
 
-    def __init__(self, colour, depth=20):
+    def __init__(self, colour, depth=3):
         if colour == 'O':
             self.mine = 0x0
             self.oppo = 0x10
@@ -16,13 +19,34 @@ class Player:
         self.depth = depth
         self.turn_thres = self.turn_step = 128
 
+    def _benchmark(self, board, turns):
+        pass
+
     def _move(self, turns):
         src, dest = self._move_search(self.depth, turns)
         self.board.move(*src, *dest)
         return (src, dest)
 
-    def _move_search(self, depth, turns):
-        pass
+    def _move_search(self, board, depth, turns, parent_score, parent_sign):
+        if depth == self.depth:
+            return self._benchmark(board, turns)
+
+        parent_cmp = self.cmps[parent_sign]
+        sign = -parent_sign
+        cmp = self.cmps[sign]
+        score = inf if sign < 0 else -inf
+
+        depth += 1
+        turns += 1
+        for (sx, sy), dest in board.valid_move:
+            for dx, dy in dest:
+                b = board.copy()
+                b.move(sx, sy, dx, dy)
+                re = self._move_search(b, depth, turns, score, cmp)
+                if cmp(re, score):
+                    score = re
+                if not cmp(score, parent_score):
+                    return score
 
     def _place(self):
         pos = self._place_search(self.depth)

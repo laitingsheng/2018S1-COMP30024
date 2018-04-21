@@ -1,3 +1,6 @@
+from operator import itemgetter
+
+
 class Board:
     """
         The board stored internally in player
@@ -20,6 +23,7 @@ class Board:
 
     mappings = ['O', '@', '-', 'X', '#']
     oppo = [(1, 3), (0, 3)]
+    dirs = ((0, -1), (1, 0), (0, 1), (-1, 0))
 
     @classmethod
     def _conv(cls, r):
@@ -56,7 +60,7 @@ class Board:
 
     def _elim(self, x, y):
         board = self.board
-        for dx, dy in ((0, -1), (1, 0), (0, 1), (-1, 0)):
+        for dx, dy in self.dirs:
             nx, ny = x + dx, y + dy
             if self._surrounded(nx, ny, dx, dy):
                 self._delete_rec(board[nx][ny])
@@ -93,6 +97,22 @@ class Board:
         oppo = self.oppo[p // 0x10]
         return p1 // 0x10 in oppo and p2 // 0x10 in oppo
 
+    def _try_move(self, x, y, dx, dy):
+        board = self.board
+
+        # move 1 step and test
+        nx, ny = x + dx, y + dy
+        if not self._inboard(nx, ny) or board[nx][ny] == 0x30:
+            return None
+        if board[nx][ny] == 0x20:
+            return (nx, ny)
+
+        # perform a jump if possible
+        nx += dx
+        ny += dy
+        if self._inboard(nx, ny) and board[nx][ny] == 0x20:
+            return (nx, ny)
+
     def copy(self):
         # create without initialisation
         b = object.__new__(Board)
@@ -101,19 +121,19 @@ class Board:
         b.pieces = [[i for i in j] for j in self.pieces]
         b.num_pieces = [i for i in self.num_pieces]
         b.border = self.border
+        return b
 
     def move(self, sx, sy, dx, dy):
         board = self.board
         board[sx][sy], board[dx][dy] = board[dx][dy], board[sx][sy]
         p = board[dx][dy]
-        t = p // 0x10
-        p %= 0x10
-        self.pieces[t][p] = (dx, dy)
 
         self.elim(dx, dy)
-        if self._surrounded(x, y, 1, 0) or self._surrounded(x, y, 0, 1):
-            board[x][y] = 0x20
+        if self._surrounded(dx, dy, 1, 0) or self._surrounded(dx, dy, 0, 1):
+            board[dx][dy] = 0x20
             self._delete_rec(p)
+        else:
+            self.pieces[p // 0x10][p % 0x10] = (dx, dy)
 
     def place(self, x, y, piece):
         board = self.board
@@ -145,18 +165,20 @@ class Board:
 
         self.border += b
 
-    def valid_place(self):
-        board = self.board
-        return [
-            (x, y) for x, y in product(range(8), range(8))
-            if board[x][y] == 0x20
-        ]
+    def valid_place(self, type):
+        if type:
+            return (
+                (x, y) for x, y in product(range(2, 8), range(8))
+                if self.board[x][y] == 0x20
+            )
+        return (
+            (x, y) for x, y in product(range(6), range(8))
+            if self.board[x][y] == 0x20
+        )
 
     def valid_move(self, type):
-        board = self.board
-        return [
-            (a, b) for a, b in (
-                (x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)
-            ) if self._inboard(a, b) and board[a][b] == '-'
-            for x, y in filter(None, self.pieces[type])
-        ]
+        # this function returns iterator, so call copy() before altering the
+        # board, or otherwise the behaviour is undefined
+        return (((x, y), filter(
+            None, (self._try_move(x, y, dx, dy) for dx, dy in self.dirs)
+        )) for x, y in filter(None, self.pieces[type]))
