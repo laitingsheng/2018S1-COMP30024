@@ -4,17 +4,19 @@ from operator import __lt__, __gt__
 
 
 class Player:
-    __slots__ = "board", "depth", "mine", "oppo", "turn_step", "turn_thres"
-    cmps = None, __gt__, __lt__
+    __slots__ = "_types", "board", "depth", "mine", "oppo", "turn_step", \
+                "turn_thres"
+    _cmps = None, __gt__, __lt__
+    _init_scores = None, -inf, inf
 
-    def __init__(self, colour, depth=3):
+    def __init__(self, colour, depth=5):
         if colour == 'O':
             self.mine = 0x0
             self.oppo = 0x10
         else:
             self.mine = 0x10
             self.oppo = 0x0
-        self.types = None, self.mine // 0x10, self.oppo // 0x10
+        self._types = None, self.mine // 0x10, self.oppo // 0x10
 
         self.board = Board()
         self.depth = depth
@@ -43,11 +45,11 @@ class Player:
         if depth == self.depth:
             return self._benchmark(board, turns)
 
-        parent_cmp = self.cmps[parent_sign]
+        parent_cmp = self._cmps[parent_sign]
         sign = -parent_sign
-        cmp = self.cmps[sign]
-        type = self.types[sign]
-        score = inf if sign < 0 else -inf
+        cmp = self._cmps[sign]
+        type = self._types[sign]
+        score = self._init_score[sign]
 
         depth += 1
         turns += 1
@@ -78,7 +80,7 @@ class Player:
         self.mine += 1
         return pos
 
-    def _place_search(self, depth):
+    def _place_search(self, board, depth, parent_score, parent_sign):
         pass
 
     def action(self, turns):

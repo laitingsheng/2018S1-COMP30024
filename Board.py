@@ -132,7 +132,7 @@ class Board:
         board[sx][sy], board[dx][dy] = board[dx][dy], board[sx][sy]
         p = board[dx][dy]
 
-        self.elim(dx, dy)
+        self._elim(dx, dy)
         if self._surrounded(dx, dy, 1, 0) or self._surrounded(dx, dy, 0, 1):
             board[dx][dy] = 0x20
             self._delete_rec(p)
