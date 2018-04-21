@@ -45,8 +45,18 @@ class Player:
                 re = self._move_search(b, depth, turns, score, cmp)
                 if cmp(re, score):
                     score = re
+                # two types of circumstances
+                # * current is a min node, then
+                #   1. child score < current score, update the score
+                #   2. if updated score not greater than the parent score,
+                #      simply return (beta)
+                # * current is a max node, then
+                #   1. child score > current score, update the score
+                #   2. if updated score not smaller than the parent score,
+                #      simply return (alpha)
                 if not cmp(score, parent_score):
                     return score
+        return score
 
     def _place(self):
         pos = self._place_search(self.depth)
