@@ -109,13 +109,13 @@ class Board:
         if not self._inboard(nx, ny) or board[nx][ny] == 0x30:
             return None
         if board[nx][ny] == 0x20:
-            return (nx, ny)
+            return nx, ny
 
         # perform a jump if possible
         nx += dx
         ny += dy
         if self._inboard(nx, ny) and board[nx][ny] == 0x20:
-            return (nx, ny)
+            return nx, ny
 
     def copy(self):
         # create without initialisation
