@@ -7,10 +7,6 @@ inf = float("inf")
 class Player:
     __slots__ = "board", "depth", "mine", "oppo", "turn_step", "turn_thres"
 
-    @staticmethod
-    def _sum_test(li):
-        return sum(li) > 1
-
     def __init__(self, colour, depth=5):
         if colour == 'O':
             self.mine = 0
@@ -45,7 +41,7 @@ class Player:
         return s, d
 
     def _move_max(self, board, depth, turns, alpha, beta):
-        if depth == self.depth or any(i < 2 for i in board.num_pieces):
+        if depth == self.depth or board.end():
             return self._eval_move(board, turns)
 
         for src, dests in board.valid_move(self.mine):
@@ -60,7 +56,7 @@ class Player:
         return alpha
 
     def _move_min(self, board, depth, turns, alpha, beta):
-        if depth == self.depth or any(i < 2 for i in board.num_pieces):
+        if depth == self.depth or board.end():
             return self._eval_move(board, turns)
 
         for src, dests in board.valid_move(self.oppo):

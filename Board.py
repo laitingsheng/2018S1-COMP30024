@@ -1,4 +1,4 @@
-from operator import itemgetter
+from itertools import product
 
 
 class Board:
@@ -27,14 +27,6 @@ class Board:
     oppo = [(1, 3), (0, 3)]
     dirs = ((0, -1), (1, 0), (0, 1), (-1, 0))
 
-    @classmethod
-    def _conv(cls, r):
-        return cls.mappings[r // 0x10]
-
-    @classmethod
-    def _line_print(cls, x):
-        return '[' + ' '.join(map(cls._conv, x)) + ']'
-
     def __init__(self):
         # initialise of board
         board = [[0x20] * 8 for _ in range(8)]
@@ -53,15 +45,22 @@ class Board:
         self.turn_step = 64
 
     def __repr__(self):
-        return '[' + ",\n ".join(map(self._line_print, self.board)) + ']'
+        return '[' + ",\n ".join(
+            '[' + ' '.join(
+                self.mappings[x // 0x10] for x in y
+            ) + ']' for y in self.board
+        ) + ']'
 
     def __str__(self):
-        return '[' + ','.join(map(self._line_print, self.board)) + ']'
+        return '[' + ','.join(
+            '[' + ' '.join(
+                self.mappings[x // 0x10] for x in y
+            ) + ']' for y in self.board
+        ) + ']'
 
     def _add_rec(self, p, pos):
         t = p // 0x10
-        p %= 0x10
-        self.pieces[t][p] = pos
+        self.pieces[t][p % 0x10] = pos
         self.num_pieces[t] += 1
 
     def _elim(self, x, y):
@@ -73,12 +72,10 @@ class Board:
                 board[nx][ny] = 0x20
 
     def _delete_rec(self, p):
-        t = p // 0x10
-        # all other types doesn't have records, so ignore
-        if t > 1:
+        if p >= 0x20:
             return
-        p %= 0x10
-        self.pieces[t][p] = None
+        t = p // 0x10
+        self.pieces[t][p % 0x10] = None
         self.num_pieces[t] -= 1
 
     def _inboard(self, x, y):
@@ -201,3 +198,6 @@ class Board:
         return (((x, y), filter(
             None, (self._try_move(x, y, dx, dy) for dx, dy in self.dirs)
         )) for x, y in filter(None, self.pieces[type]))
+
+    def end(self):
+        return any(i < 2 for i in self.num_pieces)
