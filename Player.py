@@ -1,6 +1,9 @@
 from Board import Board
 
 
+inf = float("inf")
+
+
 class Player:
     __slots__ = "board", "depth", "mine", "oppo", "turn_step", "turn_thres"
 
@@ -21,9 +24,18 @@ class Player:
 
     def _move(self, turns):
         board = self.board
+        alpha = -inf
+        for src, dests in board.valid_move(self.mine // 0x10):
+            for dest in dests:
+                b = board.copy()
+                b.move(*src, *dests)
+                re = self._move_min(board, 1, turns, alpha, inf)
+                if re > alpha:
+                    alpha = re
+                    s, d = src, dest
 
         self.board.move(*s, *d)
-        return (s, d)
+        return s, d
 
     def _move_max(self, board, depth, turns, alpha, beta):
         if depth == self.depth:
@@ -63,6 +75,11 @@ class Player:
 
     def _place_search(self, board, depth, parent_score, parent_sign):
         pass
+
+    def _stop_search(self, board, depth):
+        if depth == self.depth:
+            return True
+        return board.pieces
 
     def action(self, turns):
         if self.mine < 12:

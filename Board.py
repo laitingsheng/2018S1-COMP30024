@@ -13,7 +13,7 @@ class Board:
         0x40       : represents position which has been removed in shrinking
 
         Most of the places which can apply lambda function were replaced by
-        regular functions (in fact, class methods) since lambda is inefficient
+        regular functions since lambda is inefficient
 
         The __slots__ prevents the creation of __dict__ which can further
         decrease the memory usage of this object and fast access of members
