@@ -20,8 +20,8 @@ class Board:
         or otherwise the behaviour is undefined
     """
 
-    __slots__ = "board", "border", "num_pieces", "pieces", "turn_step", \
-                "turn_thres", "turns"
+    __slots__ = "board", "border", "count", "num_pieces", "pieces", \
+                "turn_step", "turn_thres", "turns"
 
     mappings = ['O', '@', '-', 'X', '#']
     oppo = [(1, 3), (0, 3)]
@@ -42,6 +42,7 @@ class Board:
         self.board = board
 
         # maximum 12 pieces
+        self.count = [0, 0]
         self.pieces = [[None] * 12, [None] * 12]
         self.num_pieces = [0, 0]
 
@@ -84,6 +85,27 @@ class Board:
         b = self.border
         return b - 1 < x < 8 - b and b - 1 < y < 8 - b
 
+    def _shrink(self):
+        b = self.border
+        board = self.board
+
+        # first shrink the edges
+        for i in range(b, 7 - b):
+            for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
+                self._delete_rec(board[x][y])
+                board[x][y] = 0x40
+
+        # determine if the shrinking leads to eliminations of current pieces
+        b += 1
+        for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
+            self._delete_rec(board[x][y])
+            board[x][y] = 0x30
+            self._elim(x, y)
+
+        self.border += b
+        self.turn_thres += self.turn_step
+        self.turn_step //= 2
+
     def _surrounded(self, x, y, dx, dy):
         x1, y1 = x + dx, y + dy
         if not self._inboard(x1, y1):
@@ -123,6 +145,7 @@ class Board:
         b = object.__new__(Board)
         # deepcopy
         b.board = [[i for i in j] for j in self.board]
+        b.count = [i for i in self.count]
         b.pieces = [[i for i in j] for j in self.pieces]
         b.num_pieces = [i for i in self.num_pieces]
         b.border = self.border
@@ -147,8 +170,11 @@ class Board:
         if self.turns == self.turn_thres:
             self._shrink()
 
-    def place(self, x, y, piece):
+    def place(self, x, y, type):
         board = self.board
+        piece = type * 0x10 + self.count[type]
+        self.count[type] += 1
+
         board[x][y] = piece
         self._elim(x, y)
         # the piece is eliminated immediately, no manipulation of record
@@ -157,27 +183,6 @@ class Board:
         # add record with respect to this piece
         else:
             self._add_rec(piece, (x, y))
-
-    def _shrink(self):
-        b = self.border
-        board = self.board
-
-        # first shrink the edges
-        for i in range(b, 7 - b):
-            for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
-                self._delete_rec(board[x][y])
-                board[x][y] = 0x40
-
-        # determine if the shrinking leads to eliminations of current pieces
-        b += 1
-        for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
-            self._delete_rec(board[x][y])
-            board[x][y] = 0x30
-            self._elim(x, y)
-
-        self.border += b
-        self.turn_thres += self.turn_step
-        self.turn_step //= 2
 
     def valid_place(self, type):
         # black piece
