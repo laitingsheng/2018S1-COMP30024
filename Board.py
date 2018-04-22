@@ -12,9 +12,6 @@ class Board:
         0x30       : represents block 'X'
         0x40       : represents position which has been removed in shrinking
 
-        Most of the places which can apply lambda function were replaced by
-        regular functions since lambda is inefficient
-
         The __slots__ prevents the creation of __dict__ which can further
         decrease the memory usage of this object and fast access of members
 
@@ -23,7 +20,8 @@ class Board:
         or otherwise the behaviour is undefined
     """
 
-    __slots__ = "board", "border", "num_pieces", "pieces"
+    __slots__ = "board", "border", "num_pieces", "pieces", "turn_step", \
+                "turn_thres", "turns"
 
     mappings = ['O', '@', '-', 'X', '#']
     oppo = [(1, 3), (0, 3)]
@@ -49,6 +47,9 @@ class Board:
 
         # record number of shrinks
         self.border = 0
+        self.turns = 0
+        self.turn_thres = 128
+        self.turn_step = 64
 
     def __repr__(self):
         return '[' + ",\n ".join(map(self._line_print, self.board)) + ']'
@@ -125,6 +126,9 @@ class Board:
         b.pieces = [[i for i in j] for j in self.pieces]
         b.num_pieces = [i for i in self.num_pieces]
         b.border = self.border
+        b.turns = self.turns
+        b.turn_thres = self.turn_thres
+        b.turn_step = self.turn_step
         return b
 
     def move(self, sx, sy, dx, dy):
@@ -139,6 +143,10 @@ class Board:
         else:
             self.pieces[p // 0x10][p % 0x10] = (dx, dy)
 
+        self.turns += 1
+        if self.turns == self.turn_thres:
+            self._shrink()
+
     def place(self, x, y, piece):
         board = self.board
         board[x][y] = piece
@@ -150,7 +158,7 @@ class Board:
         else:
             self._add_rec(piece, (x, y))
 
-    def shrink(self):
+    def _shrink(self):
         b = self.border
         board = self.board
 
@@ -168,6 +176,8 @@ class Board:
             self._elim(x, y)
 
         self.border += b
+        self.turn_thres += self.turn_step
+        self.turn_step //= 2
 
     def valid_place(self, type):
         # black piece

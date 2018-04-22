@@ -7,6 +7,10 @@ inf = float("inf")
 class Player:
     __slots__ = "board", "depth", "mine", "oppo", "turn_step", "turn_thres"
 
+    @staticmethod
+    def _sum_test(li):
+        return sum(li) > 1
+
     def __init__(self, colour, depth=5):
         if colour == 'O':
             self.mine = 0x0
@@ -16,7 +20,7 @@ class Player:
             self.oppo = 0x0
 
         self.board = Board()
-        self.depth = depth
+        self.depth = 1 if depth < 1 else depth
         self.turn_thres = self.turn_step = 128
 
     def _eval(self, board, turns):
@@ -38,7 +42,7 @@ class Player:
         return s, d
 
     def _move_max(self, board, depth, turns, alpha, beta):
-        if depth == self.depth:
+        if depth == self.depth or any(i < 2 for i in board.num_pieces):
             return self._eval(board, turns)
 
         for src, dests in board.valid_move(self.mine // 0x10):
@@ -53,7 +57,7 @@ class Player:
         return alpha
 
     def _move_min(self, board, depth, turns, alpha, beta):
-        if depth == self.depth:
+        if depth == self.depth or any(i < 2 for i in board.num_pieces):
             return self._eval(board, turns)
 
         for src, dests in board.valid_move(self.oppo // 0x10):
@@ -73,22 +77,18 @@ class Player:
         self.mine += 1
         return pos
 
-    def _place_search(self, board, depth, parent_score, parent_sign):
-        pass
+    def _place_max(self, board, depth, alpha, beta):
+        if board.num_pieces[self.mine // 0x10] == 12:
+            return self._move_max(board, depth, 0, alpha, beta)
 
-    def _stop_search(self, board, depth):
-        if depth == self.depth:
-            return True
-        return board.pieces
+    def _place_min(self, board, depth, alpha, beta):
+        if board.num_pieces[self.oppo // 0x10] == 12:
+            return self._move_min(board, depth, 0, alpha, beta)
 
     def action(self, turns):
         if self.mine < 12:
             return self._place()
 
-        if turns > self.turn_thres:
-            self.turn_step //= 2
-            self.turn_thres += self.turn_step
-            self.board.shrink()
         return self._move(turns)
 
     def update(self, action):
