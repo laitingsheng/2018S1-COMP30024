@@ -24,8 +24,8 @@ class Board:
                 "turn_step", "turn_thres", "turns"
 
     mappings = ['O', '@', '-', 'X', '#']
-    oppo = [(1, 3), (0, 3)]
-    dirs = ((0, -1), (1, 0), (0, 1), (-1, 0))
+    oppo = (1, 3), (0, 3)
+    dirs = (0, -1), (1, 0), (0, 1), (-1, 0)
 
     def __init__(self):
         # initialise of board
