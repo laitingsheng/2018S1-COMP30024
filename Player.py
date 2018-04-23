@@ -22,10 +22,8 @@ class Player:
         self.turn_thres = self.turn_step = 128
 
     def _eval_move(self, board, turns):
-        # difference between self and opponent
         re = cm1 * board.n_pieces[self.mine] - cm2 * board.n_pieces[self.oppo]
 
-        # the self pieces should be as close as to the centre
         for x, y in board.pieces[self.mine]:
             re -= cm4 * (abs(x - 3.5) + abs(y - 3.5))
 
@@ -33,7 +31,6 @@ class Player:
             re += cm6 * (abs(x - 3.5) + abs(y - 3.5))
 
     def _eval_place(self, board):
-        # difference between self and opponent
         re = cp1 * board.n_pieces[self.mine] - cp2 * board.n_pieces[self.oppo]
 
         for x, y in board.pieces[self.mine]:
