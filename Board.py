@@ -68,8 +68,8 @@ class Board:
         for dx, dy in self.dirs:
             nx, ny = x + dx, y + dy
             if self._surrounded(nx, ny, dx, dy):
-                self._delete_rec(board[nx][ny])
-                board[nx][ny] = 0x20
+                self._delete_rec(board[ny][nx])
+                board[ny][nx] = 0x20
 
     def _delete_rec(self, p):
         if p >= 0x20:
@@ -89,14 +89,14 @@ class Board:
         # first shrink the edges
         for i in range(b, 7 - b):
             for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
-                self._delete_rec(board[x][y])
-                board[x][y] = 0x40
+                self._delete_rec(board[y][x])
+                board[y][x] = 0x40
 
         # determine if the shrinking leads to eliminations of current pieces
         b += 1
         for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
-            self._delete_rec(board[x][y])
-            board[x][y] = 0x30
+            self._delete_rec(board[y][x])
+            board[y][x] = 0x30
             self._elim(x, y)
 
         self.border += b
@@ -112,12 +112,12 @@ class Board:
             return False
 
         board = self.board
-        t = board[x][y] // 0x10
+        t = board[y][x] // 0x10
         # ignore '-'
-        if p == 2:
+        if t == 2:
             return False
-        t1 = board[x1][y1] // 0x10
-        t2 = board[x2][y2] // 0x10
+        t1 = board[y1][x1] // 0x10
+        t2 = board[y2][x2] // 0x10
         oppo = self.oppo[t]
         return t1 in oppo and t2 in oppo
 
@@ -126,15 +126,15 @@ class Board:
 
         # move 1 step and test
         nx, ny = x + dx, y + dy
-        if not self._inboard(nx, ny) or board[nx][ny] == 0x30:
+        if not self._inboard(nx, ny) or board[ny][nx] == 0x30:
             return None
-        if board[nx][ny] == 0x20:
+        if board[ny][nx] == 0x20:
             return nx, ny
 
         # perform a jump if possible
         nx += dx
         ny += dy
-        if self._inboard(nx, ny) and board[nx][ny] == 0x20:
+        if self._inboard(nx, ny) and board[ny][nx] == 0x20:
             return nx, ny
 
     def copy(self):
@@ -153,12 +153,12 @@ class Board:
 
     def move(self, sx, sy, dx, dy):
         board = self.board
-        board[sx][sy], board[dx][dy] = board[dx][dy], board[sx][sy]
-        p = board[dx][dy]
+        board[sy][sx], board[dy][dx] = board[dy][dx], board[sy][sx]
+        p = board[dy][dx]
 
         self._elim(dx, dy)
         if self._surrounded(dx, dy, 1, 0) or self._surrounded(dx, dy, 0, 1):
-            board[dx][dy] = 0x20
+            board[dy][dx] = 0x20
             self._delete_rec(p)
         else:
             self.pieces[p // 0x10][p % 0x10] = (dx, dy)
@@ -172,29 +172,29 @@ class Board:
         piece = type * 0x10 + self.count[type]
         self.count[type] += 1
 
-        board[x][y] = piece
+        board[y][x] = piece
         self._elim(x, y)
         # the piece is eliminated immediately, no manipulation of record
         if self._surrounded(x, y, 1, 0) or self._surrounded(x, y, 0, 1):
-            board[x][y] = 0x20
+            board[y][x] = 0x20
         # add record with respect to this piece
         else:
             self._add_rec(piece, (x, y))
 
     def pot_surrounded(self, x, y):
         board = self.board
-        t = board[x][y] // 0x10
+        t = board[y][x] // 0x10
         oppo = self.oppo[t]
 
         x1, x2 = x - 1, x + 1
         if self._inboard(x1, y) and self._inboard(x2, y):
-            t1, t2 = board[x1][y] // 0x10, board[x2][y] // 0x10
+            t1, t2 = board[y][x1] // 0x10, board[y][x2] // 0x10
             if t1 in oppo and t2 == 2 or t2 in oppo and t1 == 2:
                 return True
 
         y1, y2 = y - 1, y + 1
         if self._inboard(x, y1) and self._inboard(x, y2):
-            t1, t2 = board[x][y1] // 0x10, board[x][y2] // 0x10
+            t1, t2 = board[y1][x] // 0x10, board[y2][x] // 0x10
             if t1 in oppo and t2 == 2 or t2 in oppo and t1 == 2:
                 return True
 
@@ -204,13 +204,13 @@ class Board:
         # black piece
         if type:
             return (
-                (x, y) for x, y in product(range(2, 8), range(8))
-                if self.board[x][y] == 0x20
+                (x, y) for x, y in product(range(8), range(2, 8))
+                if self.board[y][x] == 0x20
             )
         # white piece
         return (
-            (x, y) for x, y in product(range(6), range(8))
-            if self.board[x][y] == 0x20
+            (x, y) for x, y in product(range(8), range(6))
+            if self.board[y][x] == 0x20
         )
 
     def valid_move(self, type):

@@ -2,15 +2,15 @@ from Board import Board
 
 
 inf = float("inf")
-cm1 = cm2 = cm3 = cm4 = cm5 = cm6 = 1
-cp1 = cp2 = cp3 = cp4 = cp5 = cp6 = 1
+cm1 = cm2 = cm3 = cm5 = cp1 = cp2 = cp3 = cp5 = 1
+cm4 = cm6 = cp4 = cp6 = 2
 
 
 class Player:
     __slots__ = "board", "depth", "mine", "oppo", "turn_step", "turn_thres"
 
-    def __init__(self, colour, depth=8):
-        if colour == 'O':
+    def __init__(self, colour, depth=4):
+        if colour == "white":
             self.mine = 0
             self.oppo = 1
         else:
@@ -24,24 +24,28 @@ class Player:
     def _eval_move(self, board, turns):
         re = cm1 * board.n_pieces[self.mine] - cm2 * board.n_pieces[self.oppo]
 
-        for x, y in board.pieces[self.mine]:
+        for x, y in filter(None, board.pieces[self.mine]):
             re -= cm4 * (abs(x - 3.5) + abs(y - 3.5))
 
-        for x, y in board.pieces[self.oppo]:
+        for x, y in filter(None, board.pieces[self.oppo]):
             re += cm6 * (abs(x - 3.5) + abs(y - 3.5))
+
+        return re
 
     def _eval_place(self, board):
         re = cp1 * board.n_pieces[self.mine] - cp2 * board.n_pieces[self.oppo]
 
-        for x, y in board.pieces[self.mine]:
+        for x, y in filter(None, board.pieces[self.mine]):
             if board.pot_surrounded(x, y):
                 re -= cp3
             re -= cp4 * (abs(x - 3.5) + abs(y - 3.5))
 
-        for x, y in board.pieces[self.oppo]:
+        for x, y in filter(None, board.pieces[self.oppo]):
             if board.pot_surrounded(x, y):
                 re += cp5
             re += cp6 * (abs(x - 3.5) + abs(y - 3.5))
+
+        return re
 
     def _move(self, turns):
         board = self.board
@@ -50,8 +54,8 @@ class Player:
         for src, dests in board.valid_move(self.mine):
             for dest in dests:
                 b = board.copy()
-                b.move(*src, *dests)
-                re = self._move_min(board, 1, turns, alpha, inf)
+                b.move(*src, *dest)
+                re = self._move_min(b, 1, turns, alpha, inf)
                 if re > alpha:
                     alpha = re
                     s, d = src, dest
@@ -73,8 +77,8 @@ class Player:
         for src, dests in board.valid_move(self.mine):
             for dest in dests:
                 b = board.copy()
-                b.move(*src, *dests)
-                re = self._move_min(board, depth, turns, alpha, beta)
+                b.move(*src, *dest)
+                re = self._move_min(b, depth, turns, alpha, beta)
                 if re > alpha:
                     alpha = re
                     updated = True
@@ -97,8 +101,8 @@ class Player:
         for src, dests in board.valid_move(self.oppo):
             for dest in dests:
                 b = board.copy()
-                b.move(*src, *dests)
-                re = self._move_max(board, depth, turns, alpha, beta)
+                b.move(*src, *dest)
+                re = self._move_max(b, depth, turns, alpha, beta)
                 if re < beta:
                     beta = re
                     updated = True
@@ -116,17 +120,17 @@ class Player:
         alpha = -inf
         for pos in board.valid_place(self.mine):
             b = board.copy()
-            b.place(pos, self.mine)
-            re = self._place_min(board, depth, alpha, beta)
+            b.place(*pos, self.mine)
+            re = self._place_min(b, 1, alpha, inf)
             if re > alpha:
                 alpha = re
                 p = pos
-        self.board.place(p, self.mine)
+        self.board.place(*p, self.mine)
         return p
 
     def _place_max(self, board, depth, alpha, beta):
         if board.count[self.mine] == 12:
-            return self._move_max(board, depth + 1, 0, alpha, beta)
+            return self._move_max(board, depth, 0, alpha, beta)
 
         if depth == self.depth:
             return self._eval_place(board)
@@ -134,8 +138,8 @@ class Player:
         depth += 1
         for pos in board.valid_place(self.mine):
             b = board.copy()
-            b.place(pos, self.mine)
-            re = self._place_min(board, depth, alpha, beta)
+            b.place(*pos, self.mine)
+            re = self._place_min(b, depth, alpha, beta)
             if re > alpha:
                 alpha = re
                 if alpha >= beta:
@@ -144,17 +148,17 @@ class Player:
 
     def _place_min(self, board, depth, alpha, beta):
         if board.count[self.oppo] == 12:
-            return self._move_min(board, depth + 1, 0, alpha, beta)
+            return self._move_min(board, depth, 0, alpha, beta)
 
         if depth == self.depth:
             return self._eval_place(board)
 
         depth += 1
-        for pos in board.valid_place(self.mine):
+        for pos in board.valid_place(self.oppo):
             b = board.copy()
-            b.place(pos, self.mine)
-            re = self._place_max(board, depth, alpha, beta)
-            if re < alpha:
+            b.place(*pos, self.oppo)
+            re = self._place_max(b, depth, alpha, beta)
+            if re < beta:
                 beta = re
                 if beta <= alpha:
                     return beta
