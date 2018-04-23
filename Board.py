@@ -23,7 +23,7 @@ class Board:
     __slots__ = "board", "border", "count", "n_pieces", "pieces", \
                 "turn_step", "turn_thres", "turns"
 
-    mappings = ['O', '@', '-', 'X', '#']
+    mappings = 'O', '@', '-', 'X', '#'
     oppo = (1, 3), (0, 3)
     dirs = (0, -1), (1, 0), (0, 1), (-1, 0)
 
