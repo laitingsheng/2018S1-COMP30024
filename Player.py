@@ -2,6 +2,7 @@ from Board import Board
 
 
 inf = float("inf")
+cm1 = cm2 = cm3 = cm4 = cm5 = cm6 = 1
 cp1 = cp2 = cp3 = cp4 = cp5 = cp6 = 1
 
 
@@ -21,24 +22,28 @@ class Player:
         self.turn_thres = self.turn_step = 128
 
     def _eval_move(self, board, turns):
-        pass
+        # difference between self and opponent
+        re = cm1 * board.n_pieces[self.mine] - cm2 * board.n_pieces[self.oppo]
+
+        # the self pieces should be as close as to the centre
+        for x, y in board.pieces[self.mine]:
+            re -= cm4 * (abs(x - 3.5) + abs(y - 3.5))
+
+        for x, y in board.pieces[self.oppo]:
+            re += cm6 * (abs(x - 3.5) + abs(y - 3.5))
 
     def _eval_place(self, board):
         # difference between self and opponent
         re = cp1 * board.n_pieces[self.mine] - cp2 * board.n_pieces[self.oppo]
 
-        # the self pieces should be as close as to the centre
         for x, y in board.pieces[self.mine]:
-            # count number of self pieces can be eliminated
             if board.pot_surrounded(x, y):
                 re -= cp3
             re -= cp4 * (abs(x - 3.5) + abs(y - 3.5))
 
         for x, y in board.pieces[self.oppo]:
-            # count number of enemy pieces can be eliminated
             if board.pot_surrounded(x, y):
                 re += cp5
-            # keep oppo pieces away from centre
             re += cp6 * (abs(x - 3.5) + abs(y - 3.5))
 
     def _move(self, turns):
@@ -80,7 +85,7 @@ class Player:
                 b = board.copy()
                 b.move(*src, *dests)
                 re = self._move_max(board, depth, turns, alpha, beta)
-                if re < alpha:
+                if re < beta:
                     beta = re
                     if beta <= alpha:
                         return beta
