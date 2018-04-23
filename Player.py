@@ -2,12 +2,13 @@ from Board import Board
 
 
 inf = float("inf")
+cp1 = cp2 = cp3 = cp4 = cp5 = cp6 = 1
 
 
 class Player:
     __slots__ = "board", "depth", "mine", "oppo", "turn_step", "turn_thres"
 
-    def __init__(self, colour, depth=5):
+    def __init__(self, colour, depth=8):
         if colour == 'O':
             self.mine = 0
             self.oppo = 1
@@ -23,7 +24,22 @@ class Player:
         pass
 
     def _eval_place(self, board):
-        pass
+        # difference between self and opponent
+        re = cp1 * board.n_pieces[self.mine] - cp2 * board.n_pieces[self.oppo]
+
+        # the self pieces should be as close as to the centre
+        for x, y in board.pieces[self.mine]:
+            # count number of self pieces can be eliminated
+            if board.pot_surrounded(x, y):
+                re -= cp3
+            re -= cp4 * (abs(x - 3.5) + abs(y - 3.5))
+
+        for x, y in board.pieces[self.oppo]:
+            # count number of enemy pieces can be eliminated
+            if board.pot_surrounded(x, y):
+                re += cp5
+            # keep oppo pieces away from centre
+            re += cp6 * (abs(x - 3.5) + abs(y - 3.5))
 
     def _move(self, turns):
         board = self.board

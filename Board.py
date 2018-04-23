@@ -20,7 +20,7 @@ class Board:
         or otherwise the behaviour is undefined
     """
 
-    __slots__ = "board", "border", "count", "num_pieces", "pieces", \
+    __slots__ = "board", "border", "count", "n_pieces", "pieces", \
                 "turn_step", "turn_thres", "turns"
 
     mappings = ['O', '@', '-', 'X', '#']
@@ -36,7 +36,7 @@ class Board:
         # maximum 12 pieces
         self.count = [0, 0]
         self.pieces = [[None] * 12, [None] * 12]
-        self.num_pieces = [0, 0]
+        self.n_pieces = [0, 0]
 
         # record number of shrinks
         self.border = 0
@@ -61,7 +61,7 @@ class Board:
     def _add_rec(self, p, pos):
         t = p // 0x10
         self.pieces[t][p % 0x10] = pos
-        self.num_pieces[t] += 1
+        self.n_pieces[t] += 1
 
     def _elim(self, x, y):
         board = self.board
@@ -76,7 +76,7 @@ class Board:
             return
         t = p // 0x10
         self.pieces[t][p % 0x10] = None
-        self.num_pieces[t] -= 1
+        self.n_pieces[t] -= 1
 
     def _inboard(self, x, y):
         b = self.border
@@ -112,14 +112,14 @@ class Board:
             return False
 
         board = self.board
-        p = board[x][y]
+        t = board[x][y] // 0x10
         # ignore '-'
-        if p == 0x20:
+        if p == 2:
             return False
-        p1 = board[x1][y1]
-        p2 = board[x2][y2]
-        oppo = self.oppo[p // 0x10]
-        return p1 // 0x10 in oppo and p2 // 0x10 in oppo
+        t1 = board[x1][y1] // 0x10
+        t2 = board[x2][y2] // 0x10
+        oppo = self.oppo[t]
+        return t1 in oppo and t2 in oppo
 
     def _try_move(self, x, y, dx, dy):
         board = self.board
@@ -144,7 +144,7 @@ class Board:
         b.board = [[i for i in j] for j in self.board]
         b.count = [i for i in self.count]
         b.pieces = [[i for i in j] for j in self.pieces]
-        b.num_pieces = [i for i in self.num_pieces]
+        b.n_pieces = [i for i in self.n_pieces]
         b.border = self.border
         b.turns = self.turns
         b.turn_thres = self.turn_thres
@@ -181,6 +181,25 @@ class Board:
         else:
             self._add_rec(piece, (x, y))
 
+    def pot_surrounded(self, x, y):
+        board = self.board
+        t = board[x][y] // 0x10
+        oppo = self.oppo[t]
+
+        x1, x2 = x - 1, x + 1
+        if self._inboard(x1, y) and self._inboard(x2, y):
+            t1, t2 = board[x1][y] // 0x10, board[x2][y] // 0x10
+            if t1 in oppo and t2 == 2 or t2 in oppo and t1 == 2:
+                return True
+
+        y1, y2 = y - 1, y + 1
+        if self._inboard(x, y1) and self._inboard(x, y2):
+            t1, t2 = board[x][y1] // 0x10, board[x][y2] // 0x10
+            if t1 in oppo and t2 == 2 or t2 in oppo and t1 == 2:
+                return True
+
+        return False
+
     def valid_place(self, type):
         # black piece
         if type:
@@ -200,4 +219,4 @@ class Board:
         )) for x, y in filter(None, self.pieces[type]))
 
     def end(self):
-        return any(i < 2 for i in self.num_pieces)
+        return any(i < 2 for i in self.n_pieces)
