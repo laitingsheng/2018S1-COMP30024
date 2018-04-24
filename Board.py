@@ -20,12 +20,12 @@ class Board:
         or otherwise the behaviour is undefined
     """
 
-    __slots__ = "board", "border", "count", "n_pieces", "pieces", \
-                "turn_step", "turn_thres", "turns"
+    __slots__ = "board", "border", "count", "n_pieces", "pieces", "turns"
 
     mappings = 'O', '@', '-', 'X', '#'
     oppo = (1, 3), (0, 3)
     dirs = (0, -1), (1, 0), (0, 1), (-1, 0)
+    turn_thres = 128, 192
 
     def __init__(self):
         # initialise of board
@@ -41,8 +41,6 @@ class Board:
         # record number of shrinks
         self.border = 0
         self.turns = 0
-        self.turn_thres = 128
-        self.turn_step = 64
 
     def __repr__(self):
         return '[' + ",\n ".join(
@@ -80,7 +78,7 @@ class Board:
 
     def _inboard(self, x, y):
         b = self.border
-        return b - 1 < x < 8 - b and b - 1 < y < 8 - b
+        return b <= x < 8 - b and b <= y < 8 - b
 
     def _shrink(self):
         b = self.border
@@ -94,27 +92,28 @@ class Board:
 
         # determine if the shrinking leads to eliminations of current pieces
         b += 1
-        for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
+        for x, y in ((b, b), (b, 7 - b), (7 - b, 7 - b), (7 - b, b)):
             self._delete_rec(board[y][x])
             board[y][x] = 0x30
             self._elim(x, y)
 
-        self.border += b
-        self.turn_thres += self.turn_step
-        self.turn_step //= 2
+        self.border = b
 
     def _surrounded(self, x, y, dx, dy):
-        x1, y1 = x + dx, y + dy
-        if not self._inboard(x1, y1):
-            return False
-        x2, y2 = x - dx, y - dy
-        if not self._inboard(x2, y2):
+        if not self._inboard(x, y):
             return False
 
         board = self.board
         t = board[y][x] // 0x10
         # ignore '-'
-        if t == 2:
+        if t > 1:
+            return False
+
+        x1, y1 = x + dx, y + dy
+        if not self._inboard(x1, y1):
+            return False
+        x2, y2 = x - dx, y - dy
+        if not self._inboard(x2, y2):
             return False
         t1 = board[y1][x1] // 0x10
         t2 = board[y2][x2] // 0x10
@@ -147,8 +146,6 @@ class Board:
         b.n_pieces = [i for i in self.n_pieces]
         b.border = self.border
         b.turns = self.turns
-        b.turn_thres = self.turn_thres
-        b.turn_step = self.turn_step
         return b
 
     def move(self, sx, sy, dx, dy):
@@ -164,7 +161,7 @@ class Board:
             self.pieces[p // 0x10][p % 0x10] = (dx, dy)
 
         self.turns += 1
-        if self.turns == self.turn_thres:
+        if self.turns in self.turn_thres:
             self._shrink()
 
     def place(self, x, y, type):
@@ -180,6 +177,24 @@ class Board:
         # add record with respect to this piece
         else:
             self._add_rec(piece, (x, y))
+
+    def pot_hole(self, x, y, type):
+        board = self.board
+        oppo = self.oppo[type]
+
+        x1, x2 = x - 1, x + 1
+        if self._inboard(x1, y) and self._inboard(x2, y):
+            t1, t2 = board[y][x1] // 0x10, board[y][x2] // 0x10
+            if t1 in oppo and t2 != type or t2 in oppo and t1 != type:
+                return True
+
+        y1, y2 = y - 1, y + 1
+        if self._inboard(x, y1) and self._inboard(x, y2):
+            t1, t2 = board[y1][x] // 0x10, board[y2][x] // 0x10
+            if t1 in oppo and t2 != type or t2 in oppo and t1 != type:
+                return True
+
+        return False
 
     def pot_surrounded(self, x, y):
         board = self.board

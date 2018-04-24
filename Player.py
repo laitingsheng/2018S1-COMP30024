@@ -117,28 +117,36 @@ class Player:
 
     def _place(self):
         board = self.board
+        mine = self.mine
         alpha = -inf
-        for pos in board.valid_place(self.mine):
+        for pos in board.valid_place(mine):
+            if board.pot_hole(*pos, mine):
+                continue
+
             b = board.copy()
-            b.place(*pos, self.mine)
+            b.place(*pos, mine)
             re = self._place_min(b, 1, alpha, inf)
             if re > alpha:
                 alpha = re
                 p = pos
-        self.board.place(*p, self.mine)
+        board.place(*p, mine)
         return p
 
     def _place_max(self, board, depth, alpha, beta):
-        if board.count[self.mine] == 12:
+        mine = self.mine
+        if board.count[mine] == 12:
             return self._move_max(board, depth, 0, alpha, beta)
 
         if depth == self.depth:
             return self._eval_place(board)
 
         depth += 1
-        for pos in board.valid_place(self.mine):
+        for pos in board.valid_place(mine):
+            if board.pot_hole(*pos, mine):
+                continue
+
             b = board.copy()
-            b.place(*pos, self.mine)
+            b.place(*pos, mine)
             re = self._place_min(b, depth, alpha, beta)
             if re > alpha:
                 alpha = re
@@ -147,16 +155,20 @@ class Player:
         return alpha
 
     def _place_min(self, board, depth, alpha, beta):
-        if board.count[self.oppo] == 12:
+        oppo = self.oppo
+        if board.count[oppo] == 12:
             return self._move_min(board, depth, 0, alpha, beta)
 
         if depth == self.depth:
             return self._eval_place(board)
 
         depth += 1
-        for pos in board.valid_place(self.oppo):
+        for pos in board.valid_place(oppo):
+            if board.pot_hole(*pos, oppo):
+                continue
+
             b = board.copy()
-            b.place(*pos, self.oppo)
+            b.place(*pos, oppo)
             re = self._place_max(b, depth, alpha, beta)
             if re < beta:
                 beta = re
