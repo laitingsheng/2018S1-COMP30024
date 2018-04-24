@@ -120,9 +120,6 @@ class Player:
         mine = self.mine
         alpha = -inf
         for pos in board.valid_place(mine):
-            if board.pot_hole(*pos, mine):
-                continue
-
             b = board.copy()
             b.place(*pos, mine)
             re = self._place_min(b, 1, alpha, inf)
@@ -142,9 +139,6 @@ class Player:
 
         depth += 1
         for pos in board.valid_place(mine):
-            if board.pot_hole(*pos, mine):
-                continue
-
             b = board.copy()
             b.place(*pos, mine)
             re = self._place_min(b, depth, alpha, beta)
@@ -164,9 +158,6 @@ class Player:
 
         depth += 1
         for pos in board.valid_place(oppo):
-            if board.pot_hole(*pos, oppo):
-                continue
-
             b = board.copy()
             b.place(*pos, oppo)
             re = self._place_max(b, depth, alpha, beta)
