@@ -1,6 +1,39 @@
 from itertools import product
 
 
+class PlaceSearch:
+    __slots__ = "board", "mine", "oppo"
+
+    def __init__(self, board, mine, oppo):
+        self.board = board
+        self.mine = mine
+        self.oppo = oppo
+
+    def __iter__(self):
+        board = self.board.board
+        searched = [[False] * 8 for _ in range(8)]
+        for x, y in filter(None, self.board.pieces[self.mine]):
+            for dx, dy in self.board.dirs:
+                nx, ny = x + dx, y + dy
+                if self.board._inboard(nx, ny):
+                    if type == 0 and ny > 5 or type == 1 and ny < 2:
+                        continue
+
+                    p = board[ny][nx] // 0x10
+                    if not searched[ny][nx]:
+                        if p == 2:
+                            searched[ny][nx] = True
+                            yield nx, ny
+                        elif p == self.oppo:
+                            nx += dx
+                            ny += dy
+                            if self.board._inboard(nx, ny) and \
+                               not searched[ny][nx] and \
+                               board[ny][nx] == 0x20:
+                                searched[ny][nx] = True
+                                yield nx, ny
+
+
 class Board:
     """
         The board stored internally in player
@@ -22,9 +55,9 @@ class Board:
 
     __slots__ = "board", "border", "count", "n_pieces", "pieces", "turns"
 
+    dirs = (0, -1), (1, 0), (0, 1), (-1, 0)
     mappings = 'O', '@', '-', 'X', '#'
     oppo = (1, 3), (0, 3)
-    dirs = (0, -1), (1, 0), (0, 1), (-1, 0)
     turn_thres = 128, 192
 
     def __init__(self):
@@ -178,55 +211,14 @@ class Board:
         else:
             self._add_rec(piece, (x, y))
 
-    def pot_hole(self, x, y, type):
-        board = self.board
-        oppo = self.oppo[type]
-
-        x1, x2 = x - 1, x + 1
-        if self._inboard(x1, y) and self._inboard(x2, y):
-            t1, t2 = board[y][x1] // 0x10, board[y][x2] // 0x10
-            if t1 in oppo and t2 != type or t2 in oppo and t1 != type:
-                return True
-
-        y1, y2 = y - 1, y + 1
-        if self._inboard(x, y1) and self._inboard(x, y2):
-            t1, t2 = board[y1][x] // 0x10, board[y2][x] // 0x10
-            if t1 in oppo and t2 != type or t2 in oppo and t1 != type:
-                return True
-
-        return False
-
-    def pot_surrounded(self, x, y):
-        board = self.board
-        t = board[y][x] // 0x10
-        oppo = self.oppo[t]
-
-        x1, x2 = x - 1, x + 1
-        if self._inboard(x1, y) and self._inboard(x2, y):
-            t1, t2 = board[y][x1] // 0x10, board[y][x2] // 0x10
-            if t1 in oppo and t2 == 2 or t2 in oppo and t1 == 2:
-                return True
-
-        y1, y2 = y - 1, y + 1
-        if self._inboard(x, y1) and self._inboard(x, y2):
-            t1, t2 = board[y1][x] // 0x10, board[y2][x] // 0x10
-            if t1 in oppo and t2 == 2 or t2 in oppo and t1 == 2:
-                return True
-
-        return False
-
     def valid_place(self, type):
-        # black piece
-        if type:
+        board = self.board
+        if self.count[type] < 1:
             return (
-                (x, y) for x, y in product(range(8), range(2, 8))
+                (x, y) for x, y in product(range(3, 5), range(3, 5))
                 if self.board[y][x] == 0x20
             )
-        # white piece
-        return (
-            (x, y) for x, y in product(range(8), range(6))
-            if self.board[y][x] == 0x20
-        )
+        return PlaceSearch(self, type, self.oppo[type][0])
 
     def valid_move(self, type):
         return (((x, y), filter(
