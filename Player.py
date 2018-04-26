@@ -2,8 +2,7 @@ from Board import Board
 
 
 inf = float("inf")
-cm1 = cm2 = cm3 = cm5 = cp1 = cp2 = cp3 = cp5 = 1
-cm4 = cm6 = cp4 = cp6 = 2
+cm1 = cm2 = cm3 = cm4 = cm5 = cp1 = cp2 = cp3 = cp4 = cp5 = 1
 
 
 class Player:
@@ -22,24 +21,24 @@ class Player:
         self.turn_thres = self.turn_step = 128
 
     def _eval_move(self, board, turns):
-        re = cm1 * board.n_pieces[self.mine] - cm2 * board.n_pieces[self.oppo]
+        re = cm1 * (board.n_pieces[self.mine] - board.n_pieces[self.oppo])
 
         for x, y in filter(None, board.pieces[self.mine]):
-            re -= cm4 * (abs(x - 3.5) + abs(y - 3.5))
+            re -= cm2 * (abs(x - 3.5) + abs(y - 3.5))
 
         for x, y in filter(None, board.pieces[self.oppo]):
-            re += cm6 * (abs(x - 3.5) + abs(y - 3.5))
+            re += cm3 * (abs(x - 3.5) + abs(y - 3.5))
 
         return re
 
     def _eval_place(self, board):
-        re = cp1 * board.n_pieces[self.mine] - cp2 * board.n_pieces[self.oppo]
+        re = cp1 * (board.n_pieces[self.mine] - board.n_pieces[self.oppo])
 
         for x, y in filter(None, board.pieces[self.mine]):
-            re -= cp4 * (abs(x - 3.5) + abs(y - 3.5))
+            re -= cp2 * (abs(x - 3.5) + abs(y - 3.5))
 
         for x, y in filter(None, board.pieces[self.oppo]):
-            re += cp6 * (abs(x - 3.5) + abs(y - 3.5))
+            re += cp3 * (abs(x - 3.5) + abs(y - 3.5))
 
         return re
 
@@ -118,13 +117,9 @@ class Player:
         board = self.board
         mine = self.mine
         alpha = -inf
-        odiff = board.n_pieces[mine] - board.n_pieces[1 - mine]
         for pos in board.valid_place(mine):
             b = board.copy()
             b.place(*pos, mine)
-            ndiff = b.n_pieces[mine] - b.n_pieces[1 - mine]
-            if ndiff <= odiff:
-                continue
             re = self._place_min(b, 1, alpha, inf)
             if re > alpha:
                 alpha = re
@@ -140,14 +135,10 @@ class Player:
         if depth == self.depth:
             return self._eval_place(board)
 
-        odiff = board.n_pieces[mine] - board.n_pieces[1 - mine]
         depth += 1
         for pos in board.valid_place(mine):
             b = board.copy()
             b.place(*pos, mine)
-            ndiff = b.n_pieces[mine] - b.n_pieces[1 - mine]
-            if ndiff <= odiff:
-                continue
             re = self._place_min(b, depth, alpha, beta)
             if re > alpha:
                 alpha = re
@@ -163,14 +154,10 @@ class Player:
         if depth == self.depth:
             return self._eval_place(board)
 
-        odiff = board.n_pieces[oppo] - board.n_pieces[1 - oppo]
         depth += 1
         for pos in board.valid_place(oppo):
             b = board.copy()
             b.place(*pos, oppo)
-            ndiff = b.n_pieces[oppo] - b.n_pieces[1 - oppo]
-            if ndiff <= odiff:
-                continue
             re = self._place_max(b, depth, alpha, beta)
             if re < beta:
                 beta = re

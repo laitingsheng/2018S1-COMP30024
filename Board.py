@@ -4,10 +4,10 @@ from itertools import product
 class PlaceSearch:
     __slots__ = "board", "mine", "oppo"
 
-    def __init__(self, board, mine, oppo):
+    def __init__(self, board, type):
         self.board = board
-        self.mine = mine
-        self.oppo = oppo
+        self.mine = type
+        self.oppo = 1 - type
 
     def __iter__(self):
         board = self.board.board
@@ -211,6 +211,9 @@ class Board:
         else:
             self._add_rec(piece, (x, y))
 
+    def potential_surrounded(self, x, y):
+        pass
+
     def valid_place(self, type):
         board = self.board
         if self.count[type] < 1:
@@ -218,7 +221,7 @@ class Board:
                 (x, y) for x, y in product(range(3, 5), range(3, 5))
                 if self.board[y][x] == 0x20
             )
-        return PlaceSearch(self, type, self.oppo[type][0])
+        return PlaceSearch(self, type)
 
     def valid_move(self, type):
         return (((x, y), filter(
