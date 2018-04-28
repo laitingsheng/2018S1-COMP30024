@@ -143,7 +143,7 @@ def main():
     rp = Random.Player()
     p = TDSelfPlayer()
 
-    log_dir = "./log/leaf"
+    log_dir = "./log/leaf2"
     summary_op = tf.summary.merge_all()
     summary_writer = tf.summary.FileWriter(log_dir)
 
