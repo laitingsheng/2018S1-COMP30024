@@ -6,26 +6,33 @@ from Evaluation import Evaluation
 
 
 class Player:
-    def __init__(self, colour, depth=4, model=Evaluation()):
+    __slots__ = "board", "depth", "model"
+
+    def __init__(self, colour=None, depth=4, model=Evaluation()):
         self.board = Board()
         self.depth = depth
         self.model = model
 
     def _eval(self, board):
-        return 0
+        return self.model.eval(board.feature_vector)
 
-    def _move(self):
+    def _move(self, rv=False):
         board = self.board
-        alpha = -1
+        alpha = -2
         s = None
         for src, dests in board.valid_move:
             for dest in dests:
                 b = board.copy
                 b.move(*src, *dest)
-                re = self._move_min(b, 1, alpha, 1)
+                re = self._move_min(b, 1, alpha, 2)
                 if re > alpha:
                     alpha = re
                     s, d = src, dest
+
+        if not rv:
+            if s is None:
+                return None
+            return (s, d)
 
         # forfeit move
         if s is None:
@@ -100,17 +107,19 @@ class Player:
             return None
         return choice(moves)
 
-    def _place(self):
+    def _place(self, rv=False):
         board = self.board
-        alpha = -1
+        alpha = -2
         for pos in board.valid_place:
             b = board.copy
             b.place(*pos)
-            re = self._place_min(b, 1, alpha, 1)
+            re = self._place_min(b, 1, alpha, 2)
             if re > alpha:
                 alpha = re
                 p = pos
-        print(alpha)
+
+        if not rv:
+            return p
         return p, alpha
 
     def _place_max(self, board, depth, alpha, beta):
@@ -154,10 +163,10 @@ class Player:
 
     def action(self, turns):
         if self.board.placing:
-            action = self._place_random()
+            action = self._place()
             self.board.place(*action)
             return action
-        action = self._move_random()
+        action = self._move()
         if action is None:
             self.board.forfeit_move()
             return
