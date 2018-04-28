@@ -8,12 +8,11 @@ class Evaluation:
 
 
 class TrainEvaluation:
-    def __init__(self, sess):
-        self.sess = sess
+    def __init__(self):
         with tf.variable_scope('TrainEvaluation'):
-            self.feature_vector = tf.placeholder(tf.float32,
-                                                 shape=(None, 259),
-                                                 name='feature_vector')
+            self.feature_vector_ = tf.placeholder(tf.float32,
+                                                  shape=(None, 259),
+                                                  name='feature_vector_')
             with tf.variable_scope('layer_1'):
                 W_1 = tf.get_variable(
                     'W_1', shape=(259, 5180),
@@ -34,6 +33,3 @@ class TrainEvaluation:
                 tf.GraphKeys.TRAINABLE_VARIABLES,
                 scope=tf.get_variable_scope().name
             )
-
-    def eval(fv):
-        return self.sess.run(self.value, feed_dict={self.feature_vector, fv})

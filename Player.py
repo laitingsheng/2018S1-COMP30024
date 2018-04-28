@@ -8,8 +8,11 @@ from Evaluation import Evaluation
 class Player:
     __slots__ = "board", "depth", "model"
 
-    def __init__(self, colour=None, depth=4, model=Evaluation()):
-        self.board = Board()
+    def __init__(self, colour=None, board=None, depth=4, model=Evaluation()):
+        if board is None:
+            self.board = Board()
+        else:
+            self.board = board
         self.depth = depth
         self.model = model
 
