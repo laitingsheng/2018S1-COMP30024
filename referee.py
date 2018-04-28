@@ -197,7 +197,6 @@ class _Game:
         # unpack and validate piece representation
         try:
             x, y = place
-            assert(isinstance(x, int) and isinstance(y, int))
         except:
             self._invalidate(f"invalid place action representation: {place!r}")
 
@@ -231,7 +230,6 @@ class _Game:
         # unpack and validate move representation
         try:
             (xa, ya), (xb, yb) = a, b = move
-            assert(all(isinstance(coordinate, int) for coordinate in a+b))
         except:
             self._invalidate(f"invalid move action representation: {move!r}")
 
