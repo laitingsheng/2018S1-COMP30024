@@ -9,6 +9,8 @@ from Evaluation import TrainEvaluation
 class TDSelfPlayer(Player.Player):
     def __init__(self, depth=4, ep=0.2, la=0.7):
         super().__init__(depth=depth, model=TrainEvaluation())
+        self.ep = ep
+        self.la = la
 
         for tvar in self.model.trainable_variables:
             tf.summary.histogram(tvar.op.name, tvar)
@@ -96,7 +98,7 @@ class TDSelfPlayer(Player.Player):
         while reward is None:
             if self.board.placing:
                 pos, leaf_value = self._place(True)
-                if np.random.rand() < epsilon:
+                if np.random.rand() < self.ep:
                     self.board.place(*self._place_random())
                 else:
                     self.board.place(*pos)
@@ -105,11 +107,11 @@ class TDSelfPlayer(Player.Player):
                 if action is None:
                     self.board.forfeit_move()
                 else:
-                    if np.random.rand() < epsilon:
+                    if np.random.rand() < self.ep:
                         src, dest = self._move_random()
                     else:
                         src, dest = action
-                    self.move(*src, *dest)
+                    self.board.move(*src, *dest)
 
             reward = self.board.reward()
             feature_vector = self.board.feature_vector
@@ -121,7 +123,7 @@ class TDSelfPlayer(Player.Player):
 
             delta = leaf_value - prev_leaf_value
             for prev_grad, trace in zip(prev_grads, traces):
-                trace *= lamda
+                trace *= self.la
                 trace += prev_grad
 
             self.sess.run(
@@ -154,7 +156,7 @@ def main():
         p.sess = sess
         while True:
             count = sess.run(episode_count)
-            if count % 1000 == 0:
+            if count % 1000 == 999:
                 results = rp.test(p)
 
                 sess.run(
