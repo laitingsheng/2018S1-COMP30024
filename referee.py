@@ -321,6 +321,17 @@ class _Game:
         """
         n_whites = self.pieces['W']
         n_blacks = self.pieces['B']
+        if self.turns == 256:
+            dif = n_whites - n_blacks
+            if dif < 0:
+                self.winner = 'B'
+                self.phase = 'completed'
+            elif diff > 0:
+                self.winner = 'W'
+                self.phase = 'completed'
+            else:
+                self.winner = 'draw'
+                self.phase = 'completed'
         if n_whites >= 2 and n_blacks >= 2:
             pass # game continues...
         elif n_whites < 2 and n_blacks >= 2:
