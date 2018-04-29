@@ -25,7 +25,7 @@ class Board:
 
     @property
     def feature_vector(self):
-        fv = np.zeros((1, 259), np.uint8)
+        fv = np.zeros((1, 323), np.uint8)
         fv[0, :64] = self.pieces[0].ravel()
         fv[0, 64:128] = self.pieces[1].ravel()
 
@@ -37,14 +37,14 @@ class Board:
                 s[6:, :] = False
             fv[0, 128:192] = s.ravel()
         else:
-            s = np.zeros((8, 8), np.uint8)
+            s = np.zeros((16, 8), np.uint8)
             for (sx, sy), dests in self.valid_move:
                 for (dx, dy) in dests:
-                    s[(sy, dy), (sx, dx)] += 1
-            fv[0, 192:256] = s.ravel()
-        fv[0, 256] = self.turns % 2
-        fv[0, 257] = self.placing
-        fv[0, 258] = self.turns // 2 + 1
+                    s[(8 + sy, dy), (sx, dx)] += 1
+            fv[0, 192:320] = s.ravel()
+        fv[0, 320] = self.turns % 2
+        fv[0, 321] = self.placing
+        fv[0, 322] = self.turns // 2 + 1
         return fv
 
     @property

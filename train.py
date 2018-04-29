@@ -138,6 +138,58 @@ class TDSelfPlayer(Player.Player):
 
         return self.board.reward()
 
+    def train_random(self):
+        self.board.__init__()
+
+        traces = [
+            np.zeros(tvar.shape)
+            for tvar in self.model.trainable_variables
+        ]
+        feature_vector = self.board.feature_vector
+
+        prev_leaf_value, prev_grads = self.sess.run(
+            [self.model.value, self.grads],
+            feed_dict={self.model.feature_vector_: feature_vector}
+        )
+        reward = self.board.reward()
+
+        while reward is None:
+            if self.board.placing:
+                _, leaf_value = self._place(True)
+                self.board.place(*self._place_random())
+            else:
+                action, leaf_value = self._move(True)
+                if action is None:
+                    self.board.forfeit_move()
+                else:
+                    src, dest = self._move_random()
+                    self.board.move(*src, *dest)
+
+            reward = self.board.reward()
+            feature_vector = self.board.feature_vector
+            grads = self.sess.run(
+                self.grads, feed_dict={
+                    self.model.feature_vector_: feature_vector
+                }
+            )
+
+            delta = leaf_value - prev_leaf_value
+            for prev_grad, trace in zip(prev_grads, traces):
+                trace *= self.la
+                trace += prev_grad
+
+            self.sess.run(
+                self.apply_grads, feed_dict={
+                    grad_: -delta * trace
+                    for grad_, trace in zip(self.grads_s, traces)
+                }
+            )
+
+            prev_grads = grads
+            prev_leaf_value = leaf_value
+
+        return self.board.reward()
+
 
 def main():
     rp = Random.Player()
@@ -154,9 +206,13 @@ def main():
     with tf.train.MonitoredTrainingSession(checkpoint_dir=log_dir,
                                            scaffold=scaffold) as sess:
         p.sess = sess
+
+        for _ in range(1000):
+            p.train_random()
+
         while True:
             count = sess.run(episode_count)
-            if count % 1000 == 999:
+            if count % 1000 == 0:
                 results = rp.test(p)
 
                 sess.run(
