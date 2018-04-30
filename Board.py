@@ -212,7 +212,26 @@ class Board:
             self._add_rec(piece, (x, y))
 
     def potential_surrounded(self, x, y):
-        pass
+        board = self.board
+        p = board[y][x]
+        ptype = p // 0x10
+
+        count = 0
+        nearby_enermys = []
+        psurrpoint = []
+
+        if p == 0x20 or p == 0x30:
+            return (count, nearby_enermys, psurrpoint)
+
+        for dx, dy in ((0, 1),  (1, 0), (0, -1), (-1, 0)):
+            nx, ny = x + dx, y + dy
+            np = board[ny][nx]
+            nptype = np // 0x10
+            if ptype != nptype and board[x - dx][y - dy] == 0x20:
+                count += 1
+                nearby_enermys.append(np)
+                psurrpoint.append((x - dx), y - dy)
+        return (count, nearby_enermys, psurrpoint)
 
     def valid_place(self, type):
         board = self.board
