@@ -225,12 +225,15 @@ class Board:
 
         for dx, dy in ((0, 1),  (1, 0), (0, -1), (-1, 0)):
             nx, ny = x + dx, y + dy
+            if not self._inboard(nx, ny):
+                continue
             np = board[ny][nx]
             nptype = np // 0x10
-            if ptype != nptype and board[x - dx][y - dy] == 0x20:
+            if ptype != nptype and self._inboard(x - dx, y - dy) and \
+                    board[y - dy][x - dx] == 0x20:
                 count += 1
                 nearby_enermys.append(np)
-                psurrpoint.append((x - dx), y - dy)
+                psurrpoint.append((x - dx, y - dy))
         return (count, nearby_enermys, psurrpoint)
 
     def valid_place(self, type):
