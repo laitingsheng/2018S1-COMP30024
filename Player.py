@@ -7,7 +7,7 @@ cp1 = cm1 = 3
 cp4 = cp5 = cm4 = cm5 = 2
 
 class Player:
-    __slots__ = "board", "depth", "mine", "oppo", "turn_step", "turn_thres"
+    __slots__ = "board", "depth", "mine", "oppo"
 
     def __init__(self, colour, depth=4):
         if colour == "white":
@@ -19,7 +19,6 @@ class Player:
 
         self.board = Board()
         self.depth = 1 if depth < 1 else depth
-        self.turn_thres = self.turn_step = 128
 
     def _reachable(self, board, player, x, y, used_piece):
         for dx, dy in ((1, 0), (0, 1), (0, -1), (-1, 0)):

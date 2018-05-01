@@ -335,6 +335,18 @@ class _Game:
             self.winner = 'draw'
             self.phase = 'completed'
 
+        if self.turns == 256:
+            dif = n_whites - n_blacks
+            if dif > 0:
+                self.winner = 'W'
+                self.phase = 'completed'
+            elif dif < 0:
+                self.winner = 'B'
+                self.phase = 'completed'
+            else:
+                self.winner = 'draw'
+                self.phase = 'completed'
+
     def _invalidate(self, reason):
         """
         In response to an error, invalidate the game state.
