@@ -229,7 +229,7 @@ class Board:
                 continue
             np = board[ny][nx]
             nptype = np // 0x10
-            if ptype != nptype and self._inboard(x - dx, y - dy) and \
+            if ptype == 1 - nptype and self._inboard(x - dx, y - dy) and \
                     board[y - dy][x - dx] == 0x20:
                 count += 1
                 nearby_enermys.append(np)
