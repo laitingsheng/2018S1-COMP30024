@@ -2,8 +2,9 @@ from Board import Board
 
 
 inf = float("inf")
-cm1 = cm2 = cm3 = cm4 = cm5 = cp1 = cp2 = cp3 = cp4 = cp5 = 1
-
+cm2 = cm3 = cp2 = cp3 = 0.5
+cp1 = cm1 = 3
+cp4 = cp5 = cm4 = cm5 = 2
 
 class Player:
     __slots__ = "board", "depth", "mine", "oppo", "turn_step", "turn_thres"
@@ -36,7 +37,12 @@ class Player:
         return False
 
     def _eval_move(self, board, turns):
+        if board.n_pieces[self.oppo] < 2:
+            return 10000000
+
         re = cm1 * (board.n_pieces[self.mine] - board.n_pieces[self.oppo])
+        re *= max(board.n_pieces[self.mine], board.n_pieces[self.oppo])
+        re /= min(board.n_pieces[self.mine], board.n_pieces[self.oppo])
 
         for x, y in filter(None, board.pieces[self.mine]):
             re -= cm2 * (abs(x - 3.5) + abs(y - 3.5))
@@ -58,10 +64,16 @@ class Player:
                                    psurrpoint[i][1], used_pieces[i]):
                     re += cm5
 
+        # print("evaluating state:")
+        # print(repr(board))
+        # print("score is " + str(re))
         return re
 
     def _eval_place(self, board):
+
         re = cp1 * (board.n_pieces[self.mine] - board.n_pieces[self.oppo])
+        re *= max(board.n_pieces[self.mine], board.n_pieces[self.oppo])
+        re /= min(board.n_pieces[self.mine], board.n_pieces[self.oppo])
 
         for x, y in filter(None, board.pieces[self.mine]):
             re -= cp2 * (abs(x - 3.5) + abs(y - 3.5))
@@ -71,6 +83,9 @@ class Player:
             re += cp3 * (abs(x - 3.5) + abs(y - 3.5))
             re += cp5 * board.potential_surrounded(x, y)[0]
 
+        # print("evaluating state:")
+        # print(repr(board))
+        # print("score is " + str(re))
         return re
 
     def _move(self, turns):

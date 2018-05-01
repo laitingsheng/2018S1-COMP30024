@@ -27,6 +27,9 @@ class PlaceSearch:
                         elif p == self.oppo:
                             nx += dx
                             ny += dy
+                            if type == 0 and ny > 5 or type == 1 and\
+                                    ny < 2:
+                                continue
                             if self.board._inboard(nx, ny) and \
                                not searched[ny][nx] and \
                                board[ny][nx] == 0x20:
