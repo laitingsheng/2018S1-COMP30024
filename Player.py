@@ -94,7 +94,7 @@ class Player:
 
     def train(self, episode, decay=0.95):
         print('-' * 8, "Episode", episode, '-' * 8, file=sys.stderr)
-        for _ in range(200):
+        for _ in range(1000):
             self._execute(Board(), decay)
 
     def update(self, action):
