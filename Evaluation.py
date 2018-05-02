@@ -8,8 +8,7 @@ try:
     class PlaceNNet:
         def __init__(self):
             self.model = Sequential([
-                Dense(256, input_dim=64, activation="relu"),
-                Dense(1024, activation="relu"),
+                Dense(1024, input_dim=64, activation="relu"),
                 Dense(64, activation="tanh")
             ])
             self.model.compile(loss="mse", optimizer="adam")
@@ -19,8 +18,7 @@ try:
     class MoveNNet:
         def __init__(self):
             self.model = Sequential([
-                Dense(512, input_dim=64, activation="relu"),
-                Dense(4096, activation="relu"),
+                Dense(8192, input_dim=64, activation="relu"),
                 Dense(512, activation="tanh")
             ])
             self.model.compile(loss="mse", optimizer="adam")
