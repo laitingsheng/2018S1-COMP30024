@@ -102,7 +102,7 @@ class Player:
             b_counter.update([reward])
 
         results = [w_counter[1], w_counter[0], w_counter[-1],
-                   b_counter[-1], b_counter[0], b_counter[1]]
+                   b_counter[1], b_counter[0], b_counter[-1]]
 
         return results
 

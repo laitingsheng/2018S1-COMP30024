@@ -8,7 +8,8 @@ def main():
 
     p = Player()
     rp = RandomPlayer()
-    while i < 100:
+    re = [0, 0, 50, 0, 0, 50]
+    while re[2] + re[5] > 0:
         p.save(i)
         re = rp.test(p)
         print(re, file=sys.stderr)
