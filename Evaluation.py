@@ -16,6 +16,8 @@ try:
                 Dense(64, activation="tanh")
             ])
             self.model.compile(loss="mse", optimizer="adam")
+            with open("./temp/place_config.json", 'w') as f:
+                json.dump(self.model.to_json(), f)
 
     class MoveNNet:
         def __init__(self):
@@ -32,6 +34,8 @@ try:
                 Dense(512, activation="tanh")
             ])
             self.model.compile(loss="mse", optimizer="adam")
+            with open("./temp/move_config.json", 'w') as f:
+                json.dump(self.model.to_json(), f)
 except ModuleNotFoundError:
     class PlaceNNet:
         pass
@@ -45,26 +49,17 @@ class Evaluation:
         self.place = PlaceNNet()
         self.move = MoveNNet()
 
-    def eval(self, board):
-        if board.placing:
-            return np.argmax(self.place.model.predict(board.canonical))
-        return np.argmax(self.move.model.predict(board.canonical))
-
     def predict(self, board):
         if board.placing:
             return self.place.model.predict(board.canonical)
         return self.move.model.predict(board.canonical)
 
     def save(self, key):
-        with open(f"./temp/place_config_{key}.json", 'w') as f:
-            json.dump(self.place.model.to_json(), f)
         self.place.model.save_weights(f"./temp/place_weights_{key}.h5")
-        with open(f"./temp/move_config_{key}.json", 'w') as f:
-            json.dump(self.move.model.to_json(), f)
         self.place.model.save_weights(f"./temp/move_weights_{key}.h5")
 
     def train(self, board, vv):
-        if board.placing or board.turns == 0:
+        if board.placing:
             self.place.model.fit(board.canonical, vv)
         else:
             self.move.model.fit(board.canonical, vv)

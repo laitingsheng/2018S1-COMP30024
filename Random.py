@@ -1,5 +1,5 @@
+import numpy as np
 from collections import Counter
-from random import choice
 
 from Board import Board
 from referee import _Game, _InvalidActionException
@@ -13,16 +13,23 @@ class Player:
             self.board = board
 
     def _move(self):
-        moves = [
-            (src, dest) for src, dests in self.board.valid_move
-            for dest in dests
-        ]
-        if not moves:
+        vm = self.board.valid_move
+        if vm.sum() < 1:
             return None
-        return choice(moves)
+        a = np.random.choice(512, p=vm / vm.sum())
+        y = a // 64
+        x = a % 64 // 8
+        i = a % 64 % 8
+        dx, dy = self.board.dirs[i // 2]
+        i = i % 2 + 1
+        nx = x + dx * i
+        ny = y + dy * i
+        return (x, y), (nx, ny)
 
     def _place(self):
-        return choice(list(self.board.valid_place))
+        vp = self.board.valid_place
+        a = np.random.choice(64, p=vp / vp.sum())
+        return a % 8, a // 8
 
     def action(self, turns):
         if self.board.placing:

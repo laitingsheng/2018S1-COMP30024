@@ -170,11 +170,26 @@ class Board:
             self._shrink()
 
     def move(self, sx, sy, dx, dy):
-        t = self.board[sy, sx]
-        if t != self.board[dy, dx] != 2:
+        if sx - dx != 0 and sy - dy != 0 or \
+           not (self._inboard(sx, sy) and self._inboard(dx, dy)):
+            raise "invalid move"
+        if self.board[dy, dx] != 2:
             raise "invalid destination"
+        if abs(sx - dx) > 2 or abs(sy - dy) > 2:
+            raise "invalid jump"
+
+        t = self.board[sy, sx]
         if t != self.turns % 2:
             raise "invalid type"
+        if abs(sx - dx) == 2:
+            x = (sx + dx) // 2
+            if self.board[sy, x] == 2:
+                raise "invalid jump"
+        elif abs(sy - dy) == 2:
+            y = (sy + dy) // 2
+            if self.board[y, sx] == 2:
+                raise "invalid jump"
+
         self.board[(sy, dy), (sx, dx)] = self.board[(dy, sy), (dx, sx)]
         self.pieces[t][sy, sx] = False
 
