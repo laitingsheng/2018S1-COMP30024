@@ -219,6 +219,8 @@ class Player:
         board = self.board
         if board.count[self.oppo] < 12:
             board.place(*action, self.oppo)
+        elif action is None:
+            self.board.forfeit()
         else:
             src, dest = action
             board.move(*src, *dest)

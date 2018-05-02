@@ -200,6 +200,11 @@ class Board:
         if self.turns in self.turn_thres:
             self._shrink()
 
+    def forfeit(self):
+        self.turns += 1
+        if self.turns in self.turn_thres:
+            self._shrink()
+
     def place(self, x, y, type):
         board = self.board
         piece = type * 0x10 + self.count[type]
