@@ -33,21 +33,7 @@ class Board:
     @property
     def reward(self):
         type = self.turns % 2
-        oppo = 1 - type
-        if self.turns == 256:
-            dif = self.n_pieces[type] - self.n_pieces[oppo]
-            if dif > 0:
-                return 1
-            elif dif < 0:
-                return -1
-            return 0
-        if not self.placing:
-            if self.n_pieces[type] < 2 and self.n_pieces[oppo] < 2:
-                return 0
-            if self.n_pieces[oppo] < 2:
-                return 1
-            if self.n_pieces[type] < 2:
-                return -1
+        return self.n_pieces[type] - self.n_pieces[1 - type]
 
     @property
     def valid_place(self):

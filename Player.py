@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 from random import choice
 
@@ -37,26 +38,22 @@ class Player:
         a = np.argmax(pi)
         return a % 8, a // 8
 
-    def _execute(self, board, la):
+    def _execute(self, board, decay):
         hist = []
 
         while not board.end:
             if board.placing:
                 vp = board.valid_place
                 a = np.random.choice(64, p=vp / vp.sum())
-                vvp = self.model.predict(board)
-                v = vvp[0, a]
                 b = board.copy
                 board.place(a % 8, a // 8)
-                hist.append((v, a, b, vvp.copy()))
+                hist.append((b, a, board.reward))
             else:
                 vm = board.valid_move
                 if vm.sum() < 1:
                     board.forfeit_move()
                 else:
                     a = np.random.choice(512, p=vm / vm.sum())
-                    vvm = self.model.predict(board)
-                    v = vvm[0, a]
                     y = a // 64
                     x = a % 64 // 8
                     i = a % 64 % 8
@@ -66,20 +63,17 @@ class Player:
                     ny = y + dy * i
                     b = board.copy
                     board.move(x, y, nx, ny)
-                    hist.append((v, a, b, vvm.copy()))
+                    hist.append((b, a, board.reward))
 
-        r = board.reward
         s = 0
-        pv, pa, pb, pvv = hist[0]
-        for v, a, b, vv in hist[1:]:
-            s += la * (v - pv)
-            la *= la
-            pvv[0, pa] = r + s * pv
+        pb, pa, pr = hist[0]
+        pvv = self.model.predict(pb)
+        for b, a, r in hist[1:]:
+            vv = self.model.predict(b)
+            pvv[0, pa] = pr + decay * np.argmax(vv[0])
             self.model.train(pb, pvv)
-            pv, pa, pb, pvv = v, a, b, vv
-
-        s += la * (r - pv)
-        pvv[0, pa] = r + s * pv
+            pb, pa, pr, pvv = b, a, r, vv
+        pvv[0, pa] = pr
         self.model.train(pb, pvv)
 
     def action(self, turns):
@@ -98,10 +92,10 @@ class Player:
     def save(self, key):
         self.model.save(key)
 
-    def train(self, episode, la=0.7):
-        print('-' * 8, "Episode", episode, '-' * 8)
-        for _ in range(1000):
-            self._execute(Board(), la)
+    def train(self, episode, decay=0.95):
+        print('-' * 8, "Episode", episode, '-' * 8, file=sys.stderr)
+        for _ in range(200):
+            self._execute(Board(), decay)
 
     def update(self, action):
         if self.board.placing:

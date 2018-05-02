@@ -8,14 +8,21 @@ def main():
 
     p = Player()
     rp = RandomPlayer()
-    re = [0, 0, 50, 0, 0, 50]
-    while re[2] + re[5] > 0:
-        p.save(i)
-        re = rp.test(p)
-        print(re, file=sys.stderr)
+    pre = [0, 0, 50, 0, 0, 50]
+    while pre[2] + pre[5] > 0 and pre[0] + pre[3] < 190:
+        # train and save the weights
         p.train(i)
         p.save(i)
+
+        re = rp.test(p)
+        print(re, file=sys.stderr)
+
+        if re[0] + re[3] > pre[0] + pre[3]:
+            print("find a better model", file=sys.stderr)
+            p.save(i, "best")
+
         i += 1
+        re = pre
 
 
 if __name__ == "__main__":
