@@ -1,5 +1,4 @@
 import numpy as np
-from itertools import product
 
 
 class Board:
@@ -12,9 +11,7 @@ class Board:
 
     @property
     def copy(self):
-        # create without initialisation
         b = object.__new__(Board)
-        # deepcopy
         b.board = self.board.copy()
         b.pieces = [i.copy() for i in self.pieces]
         b.n_pieces = [i for i in self.n_pieces]
@@ -24,46 +21,60 @@ class Board:
         return b
 
     @property
-    def feature_vector(self):
-        fv = np.zeros((1, 323), np.uint8)
-        fv[0, :64] = self.pieces[0].ravel()
-        fv[0, 64:128] = self.pieces[1].ravel()
+    def canonical(self):
+        type = self.turns % 2
+        return (self.pieces[type] - self.pieces[1 - type]).reshape((1, 64))
 
-        if self.placing:
-            s = self.board == 2
-            if self.turns % 2:
-                s[:2, :] = False
-            else:
-                s[6:, :] = False
-            fv[0, 128:192] = s.ravel()
-        else:
-            s = np.zeros((16, 8), np.uint8)
-            for (sx, sy), dests in self.valid_move:
-                for (dx, dy) in dests:
-                    s[(8 + sy, dy), (sx, dx)] += 1
-            fv[0, 192:320] = s.ravel()
-        fv[0, 320] = self.turns % 2
-        fv[0, 321] = self.placing
-        fv[0, 322] = self.turns // 2 + 1
-        return fv
+    @property
+    def end(self):
+        return self.turns == 256 or \
+               not self.placing and any(i < 2 for i in self.n_pieces)
+
+    @property
+    def reward(self):
+        type = self.turns % 2
+        oppo = 1 - type
+        if self.turns == 256:
+            dif = self.n_pieces[type] - self.n_pieces[oppo]
+            if dif > 0:
+                return 1
+            elif dif < 0:
+                return -1
+            return 0
+        if not self.placing:
+            if self.n_pieces[type] < 2 and self.n_pieces[oppo] < 2:
+                return 0
+            if self.n_pieces[oppo] < 2:
+                return 1
+            if self.n_pieces[type] < 2:
+                return -1
 
     @property
     def valid_place(self):
+        vp = (self.board == 2).astype(np.int8)
         if self.turns % 2:
-            return (
-                (x, y) for x, y in product(range(8), range(2, 8))
-                if self.board[y, x] == 2
-            )
-        return (
-            (x, y) for x, y in product(range(8), range(6))
-            if self.board[y, x] == 2
-        )
+            vp[:2, :] = False
+        else:
+            vp[6:, :] = False
+        return vp.ravel()
 
     @property
     def valid_move(self):
-        return (((x, y), filter(
-            None, (self._try_move(x, y, dx, dy) for dx, dy in self.dirs)
-        )) for y, x in np.argwhere(self.pieces[self.turns % 2] != 0))
+        vm = np.zeros(512, np.int8)
+        m = False
+        for y, x in np.argwhere(self.pieces[self.turns % 2] != 0):
+            for i, (dx, dy) in enumerate(self.dirs):
+                nx, ny = x + dx, y + dy
+                if self._inboard(nx, ny) and self.board[ny, nx] == 2:
+                    vm[64 * y + 8 * x + 2 * i] = True
+                    continue
+
+                nx += dx
+                ny += dy
+                if self._inboard(nx, ny) and self.board[ny, nx] == 2:
+                    vm[64 * y + 8 * x + 2 * i + 1] = True
+
+        return vm
 
     def __init__(self):
         # initialise of board
@@ -71,7 +82,7 @@ class Board:
         self.board[(0, 0, 7, 7), (0, 7, 0, 7)] = 3
 
         # maximum 12 pieces
-        self.pieces = [np.zeros((8, 8), np.bool) for _ in range(2)]
+        self.pieces = [np.zeros((8, 8), np.int8) for _ in range(2)]
         self.n_pieces = [0, 0]
 
         # record number of shrinks
@@ -150,29 +161,21 @@ class Board:
         oppo = self.oppo[t]
         return t1 in oppo and t2 in oppo
 
-    def _try_move(self, x, y, dx, dy):
-        # move 1 step and test
-        x += dx
-        y += dy
-        if not self._inboard(x, y) or self.board[y, x] == 3:
-            return None
-        if self.board[y, x] == 2:
-            return x, y
-
-        # perform a jump if possible
-        x += dx
-        y += dy
-        if self._inboard(x, y) and self.board[y, x] == 2:
-            return x, y
-
     def forfeit_move(self):
+        if self.valid_move.sum() > 0:
+            raise "invalid forfeit"
+
         self.turns += 1
         if self.turns in self.turn_thres:
             self._shrink()
 
     def move(self, sx, sy, dx, dy):
+        t = self.board[sy, sx]
+        if t != self.board[dy, dx] != 2:
+            raise "invalid destination"
+        if t != self.turns % 2:
+            raise "invalid type"
         self.board[(sy, dy), (sx, dx)] = self.board[(dy, sy), (dx, sx)]
-        t = self.board[dy, dx]
         self.pieces[t][sy, sx] = False
 
         self._elim(dx, dy)
@@ -187,7 +190,13 @@ class Board:
             self._shrink()
 
     def place(self, x, y):
-        self.board[y, x] = self.turns % 2
+        t = self.turns % 2
+        if self.board[y, x] != 2:
+            raise "not empty"
+        if t == 0 and y > 5 or t == 1 and y < 2:
+            raise "invalid position"
+
+        self.board[y, x] = t
         self._elim(x, y)
         # the piece is eliminated immediately, no manipulation of record
         if self._surrounded(x, y, 1, 0) or self._surrounded(x, y, 0, 1):
@@ -200,22 +209,3 @@ class Board:
         if self.turns == 24:
             self.turns = 0
             self.placing = False
-
-    def reward(self):
-        type = self.turns % 2
-        oppo = 1 - type
-        if not self.placing:
-            if self.n_pieces[type] < 2 and self.n_pieces[oppo] < 2:
-                return 0
-            if self.n_pieces[oppo] < 2:
-                return 1
-            if self.n_pieces[type] < 2:
-                return -1
-        if self.turns == 256:
-            dif = self.n_pieces[type] - self.n_pieces[oppo]
-            if dif > 0:
-                return 1
-            elif dif < 0:
-                return -1
-            return 0
-        return None
