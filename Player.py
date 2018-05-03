@@ -11,9 +11,9 @@ inf = float("inf")
 class Player:
     __slots__ = "board", "depth", "model"
 
-    def __init__(self, colour=None):
+    def __init__(self, colour=None, load=False):
         self.board = Board()
-        self.model = Evaluation()
+        self.model = Evaluation(load)
 
     def _move(self):
         vm = self.board.valid_move

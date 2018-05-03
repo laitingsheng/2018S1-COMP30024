@@ -6,7 +6,7 @@ from Random import Player as RandomPlayer
 def main():
     i = 1
 
-    p = Player()
+    p = Player(load=True)
     rp = RandomPlayer()
     pre = [0, 0, 50, 0, 0, 50]
     while pre[2] + pre[5] > 0 or pre[0] + pre[3] < 190:

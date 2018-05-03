@@ -326,7 +326,7 @@ class _Game:
             if dif < 0:
                 self.winner = 'B'
                 self.phase = 'completed'
-            elif diff > 0:
+            elif dif > 0:
                 self.winner = 'W'
                 self.phase = 'completed'
             else:
