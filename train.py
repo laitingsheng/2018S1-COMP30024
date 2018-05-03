@@ -22,7 +22,7 @@ def main():
             p.save(i, "best")
 
         i += 1
-        re = pre
+        pre = re
 
 
 if __name__ == "__main__":
