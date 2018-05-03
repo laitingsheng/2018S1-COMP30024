@@ -41,11 +41,7 @@ try:
                 with open("./temp/new_move_config.json", 'w') as f:
                     json.dump(self.model.to_json(), f)
 except ModuleNotFoundError:
-    class PlaceNNet:
-        pass
-
-    class MoveNNet:
-        pass
+    from Pretrained import PlaceNNet, MoveNNet
 
 
 class Evaluation:
