@@ -10,7 +10,7 @@ def main():
     rp = RandomPlayer()
     pre = [0, 0, 50, 0, 0, 50]
     while pre[2] + pre[5] > 0 or pre[0] + pre[3] < 190:
-        # train and save the weights
+        p.save(i)
         p.train(i)
         p.save(i)
 

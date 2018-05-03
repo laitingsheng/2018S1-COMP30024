@@ -89,8 +89,8 @@ class Player:
         self.board.move(*src, *dest)
         return action
 
-    def save(self, key):
-        self.model.save(key)
+    def save(self, key, suffix="curr"):
+        self.model.save(key, suffix)
 
     def train(self, episode, decay=0.95):
         print('-' * 8, "Episode", episode, '-' * 8, file=sys.stderr)

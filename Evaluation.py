@@ -9,6 +9,7 @@ try:
         def __init__(self):
             self.model = Sequential([
                 Dense(1024, input_dim=64, activation="relu"),
+                Dense(64, activation="sigmoid"),
                 Dense(64, activation="tanh")
             ])
             self.model.compile(loss="mse", optimizer="adam")
@@ -19,6 +20,7 @@ try:
         def __init__(self):
             self.model = Sequential([
                 Dense(8192, input_dim=64, activation="relu"),
+                Dense(512, activation="sigmoid"),
                 Dense(512, activation="tanh")
             ])
             self.model.compile(loss="mse", optimizer="adam")
@@ -42,7 +44,7 @@ class Evaluation:
             return self.place.model.predict(board.canonical)
         return self.move.model.predict(board.canonical)
 
-    def save(self, key, suffix="curr"):
+    def save(self, key, suffix):
         self.place.model.save_weights(f"./temp/place_weights_{suffix}.h5")
         self.place.model.save_weights(f"./temp/move_weights_{suffix}.h5")
 
