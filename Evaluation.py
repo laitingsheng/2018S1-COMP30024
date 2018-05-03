@@ -16,6 +16,7 @@ try:
                 self.model = Sequential([
                     Dense(128, input_dim=64, activation="relu"),
                     Dense(64, activation="sigmoid"),
+                    Dense(64, activation="sigmoid"),
                     Dense(64, activation="tanh")
                 ])
                 self.model.compile(loss="mse", optimizer="adam")
@@ -32,6 +33,7 @@ try:
             else:
                 self.model = Sequential([
                     Dense(1024, input_dim=64, activation="relu"),
+                    Dense(512, activation="sigmoid"),
                     Dense(512, activation="sigmoid"),
                     Dense(512, activation="tanh")
                 ])
