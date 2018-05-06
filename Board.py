@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 
 
@@ -25,6 +26,7 @@ class Board:
         type = self.turns % 2
         cb = self.pieces[type] - self.pieces[1 - type]
 
+        # flip the board so that the valid zone is always on the top
         if self.placing and type:
             cb = np.flipud(cb)
 
@@ -60,8 +62,11 @@ class Board:
     @property
     def valid_place(self):
         vp = (self.board == 2).astype(np.int8)
+
+        # flip the board so that the valid zone is always on the top
         if self.turns % 2:
             vp = np.flipud(vp)
+
         return vp[:6].ravel()
 
     def __init__(self):
@@ -111,35 +116,9 @@ class Board:
                 self._delete_rec(nx, ny)
                 self.board[ny, nx] = 2
 
-    def _fliplr(self):
-        b = object.__new__(Board)
-        b.board = np.fliplr(self.board).copy()
-        b.pieces = [np.fliplr(i).copy() for i in self.pieces]
-        b.n_pieces = [i for i in self.n_pieces]
-        b.border = self.border
-        b.turns = self.turns
-        b.placing = self.placing
-        return b
-
     def _inboard(self, x, y):
         b = self.border
         return b <= x < 8 - b and b <= y < 8 - b
-
-    def _rot90(self, k=1):
-        board = np.rot90(self.board, k)
-
-        if self.placing and \
-           ((board[:2, :] == 1).any() or (board[6:, :] == 0).any()):
-            return None
-
-        b = object.__new__(Board)
-        b.board = board.copy()
-        b.pieces = [np.rot90(i, k).copy() for i in self.pieces]
-        b.n_pieces = [i for i in self.n_pieces]
-        b.border = self.border
-        b.turns = self.turns
-        b.placing = self.placing
-        return b
 
     def _shrink(self):
         b = self.border
@@ -187,7 +166,7 @@ class Board:
         y = a // 64
         x = a % 64 // 8
         i = a % 64 % 8
-        dx, dy = board.dirs[i // 2]
+        dx, dy = self.dirs[i // 2]
         i = i % 2 + 1
         nx = x + dx * i
         ny = y + dy * i
@@ -196,7 +175,7 @@ class Board:
 
     def interpret_place(self, a):
         if self.turns % 2:
-            # the board was flipped, so the given action is flipped as well
+            # the board was flipped, so the given action was flipped as well
             a += (7 - a // 8 * 2) * 8
         y = a // 8
         x = a % 8
@@ -206,22 +185,34 @@ class Board:
     def move(self, sx, sy, dx, dy):
         if sx - dx != 0 and sy - dy != 0 or \
            not (self._inboard(sx, sy) and self._inboard(dx, dy)):
+            print(sx, sy, dx, dy, file=sys.stderr)
+            print(repr(self), file=sys.stderr)
             raise "invalid move"
         if self.board[dy, dx] != 2:
+            print(sx, sy, dx, dy, file=sys.stderr)
+            print(repr(self), file=sys.stderr)
             raise "invalid destination"
         if abs(sx - dx) > 2 or abs(sy - dy) > 2:
+            print(sx, sy, dx, dy, file=sys.stderr)
+            print(repr(self), file=sys.stderr)
             raise "invalid jump"
 
         t = self.board[sy, sx]
         if t != self.turns % 2:
+            print(sx, sy, dx, dy, t, file=sys.stderr)
+            print(repr(self), file=sys.stderr)
             raise "invalid type"
         if abs(sx - dx) == 2:
             x = (sx + dx) // 2
             if self.board[sy, x] == 2:
+                print(sx, sy, dx, dy, file=sys.stderr)
+                print(repr(self), file=sys.stderr)
                 raise "invalid jump"
         elif abs(sy - dy) == 2:
             y = (sy + dy) // 2
             if self.board[y, sx] == 2:
+                print(sx, sy, dx, dy, file=sys.stderr)
+                print(repr(self), file=sys.stderr)
                 raise "invalid jump"
 
         self.board[(sy, dy), (sx, dx)] = self.board[(dy, sy), (dx, sx)]
@@ -239,10 +230,14 @@ class Board:
             self._shrink()
 
     def place(self, x, y):
-        t = self.turns % 2
         if self.board[y, x] != 2:
+            print(x, y, file=sys.stderr)
+            print(repr(self), file=sys.stderr)
             raise "not empty"
+        t = self.turns % 2
         if t == 0 and y > 5 or t == 1 and y < 2:
+            print(x, y, file=sys.stderr)
+            print(repr(self), file=sys.stderr)
             raise "invalid position"
 
         self.board[y, x] = t
