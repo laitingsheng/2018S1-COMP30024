@@ -15,9 +15,9 @@ try:
             else:
                 self.model = Sequential([
                     Dense(128, input_dim=64, activation="relu"),
-                    Dense(64, activation="sigmoid"),
-                    Dense(64, activation="sigmoid"),
-                    Dense(64, activation="tanh")
+                    Dense(128, activation="relu"),
+                    Dense(128, activation="relu"),
+                    Dense(48, activation="tanh")
                 ])
                 self.model.compile(loss="mse", optimizer="adam")
                 with open("./temp/new_place_config.json", 'w') as f:
@@ -33,8 +33,10 @@ try:
             else:
                 self.model = Sequential([
                     Dense(1024, input_dim=64, activation="relu"),
-                    Dense(512, activation="sigmoid"),
-                    Dense(512, activation="sigmoid"),
+                    Dense(1024, activation="relu"),
+                    Dense(1024, activation="relu"),
+                    Dense(1024, activation="relu"),
+                    Dense(1024, activation="relu"),
                     Dense(512, activation="tanh")
                 ])
                 self.model.compile(loss="mse", optimizer="adam")
