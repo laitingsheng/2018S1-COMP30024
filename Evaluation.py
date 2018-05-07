@@ -11,16 +11,18 @@ try:
                 with open("./temp/place_config.json", 'r') as f:
                     self.model = model_from_json(json.load(f))
                 self.model.load_weights("./temp/place_weights_curr.h5")
-                self.model.compile(loss="mse", optimizer="adam")
             else:
                 self.model = Sequential([
                     Dense(128, input_dim=64, activation="relu"),
-                    Dense(64, activation="sigmoid"),
+                    Dense(64, activation="relu"),
+                    Dense(64, activation="relu"),
+                    Dense(64, activation="relu"),
+                    Dense(64, activation="relu"),
                     Dense(64, activation="tanh")
                 ])
-                self.model.compile(loss="mse", optimizer="adam")
                 with open("./temp/place_config.json", 'w') as f:
                     json.dump(self.model.to_json(), f)
+            self.model.compile(loss="mse", optimizer="adam")
 
     class MoveNNet:
         def __init__(self, load=False):
@@ -28,16 +30,18 @@ try:
                 with open("./temp/move_config.json", 'r') as f:
                     self.model = model_from_json(json.load(f))
                 self.model.load_weights("./temp/move_weights_curr.h5")
-                self.model.compile(loss="mse", optimizer="adam")
             else:
                 self.model = Sequential([
                     Dense(1024, input_dim=64, activation="relu"),
-                    Dense(512, activation="sigmoid"),
+                    Dense(512, activation="relu"),
+                    Dense(512, activation="relu"),
+                    Dense(512, activation="relu"),
+                    Dense(512, activation="relu"),
                     Dense(512, activation="tanh")
                 ])
-                self.model.compile(loss="mse", optimizer="adam")
                 with open("./temp/move_config.json", 'w') as f:
                     json.dump(self.model.to_json(), f)
+            self.model.compile(loss="mse", optimizer="adam")
 except ModuleNotFoundError:
     class PlaceNNet:
         pass
