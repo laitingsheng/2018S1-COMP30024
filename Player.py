@@ -18,51 +18,45 @@ class Player:
     def _move(self):
         vm = self.board.valid_move
         if vm.sum() < 1:
-            return None
+            return self.board.forfeit_move()
 
         pi = self.model.predict(self.board)[0]
         pi[vm == 0] = -inf
-        a = np.argmax(pi)
-        y = a // 64
-        x = a % 64 // 8
-        i = a % 64 % 8
-        dx, dy = self.board.dirs[i // 2]
-        i = i % 2 + 1
-        nx = x + dx * i
-        ny = y + dy * i
-        return (x, y), (nx, ny)
+        return self.board.interpret_move(np.argmax(pi))
 
     def _place(self):
         pi = self.model.predict(self.board)[0]
         pi[self.board.valid_place == 0] = -inf
-        a = np.argmax(pi)
-        return a % 8, a // 8
+        return self.board.interpret_place(np.argmax(pi))
 
-    def _execute(self, board, decay):
+    def _execute(self, board, decay, ep):
         hist = []
 
         while not board.end:
             if board.placing:
                 vp = board.valid_place
-                a = np.random.choice(64, p=vp / vp.sum())
+                if np.random.rand() <= ep:
+                    a = np.random.choice(48, p=vp / vp.sum())
+                else:
+                    pi = self.model.predict(board)[0]
+                    pi[vp == 0] = -inf
+                    a = np.argmax(pi)
                 b = board.copy
-                board.place(a % 8, a // 8)
+                board.interpret_place(a)
                 hist.append((b, a, board.reward))
             else:
                 vm = board.valid_move
                 if vm.sum() < 1:
                     board.forfeit_move()
                 else:
-                    a = np.random.choice(512, p=vm / vm.sum())
-                    y = a // 64
-                    x = a % 64 // 8
-                    i = a % 64 % 8
-                    dx, dy = board.dirs[i // 2]
-                    i = i % 2 + 1
-                    nx = x + dx * i
-                    ny = y + dy * i
+                    if np.random.rand() <= ep:
+                        a = np.random.choice(512, p=vm / vm.sum())
+                    else:
+                        pi = self.model.predict(board)[0]
+                        pi[vm == 0] = -inf
+                        a = np.argmax(pi)
                     b = board.copy
-                    board.move(x, y, nx, ny)
+                    board.interpret_move(a)
                     hist.append((b, a, board.reward))
 
         s = 0
@@ -78,24 +72,18 @@ class Player:
 
     def action(self, turns):
         if self.board.placing:
-            action = self._place()
-            self.board.place(*action)
-            return action
-        action = self._move()
-        if action is None:
-            self.board.forfeit_move()
-            return
-        src, dest = action
-        self.board.move(*src, *dest)
-        return action
+            return self._place()
+        return self._move()
 
     def save(self, key, suffix="curr"):
         self.model.save(key, suffix)
 
     def train(self, episode, decay=0.95):
         print('-' * 8, "Episode", episode, '-' * 8, file=sys.stderr)
-        for _ in range(1000):
-            self._execute(Board(), decay)
+        ep = 1
+        while ep > 0.01:
+            self._execute(Board(), decay, ep)
+            ep *= 0.995
 
     def update(self, action):
         if self.board.placing:

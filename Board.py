@@ -155,6 +155,23 @@ class Board:
         if self.turns in self.turn_thres:
             self._shrink()
 
+    def interpret_move(self, a):
+        y = a // 64
+        x = a % 64 // 8
+        i = a % 64 % 8
+        dx, dy = self.dirs[i // 2]
+        i = i % 2 + 1
+        nx = x + dx * i
+        ny = y + dy * i
+        self.move(x, y, nx, ny)
+        return (x, y), (nx, ny)
+
+    def interpret_place(self, a):
+        y = a // 8
+        x = a % 8
+        self.place(x, y)
+        return x, y
+
     def move(self, sx, sy, dx, dy):
         if sx - dx != 0 and sy - dy != 0 or \
            not (self._inboard(sx, sy) and self._inboard(dx, dy)):
