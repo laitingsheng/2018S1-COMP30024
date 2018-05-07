@@ -8,18 +8,22 @@ def main():
 
     p = Player(load=True)
     rp = RandomPlayer()
-    pre = [0, 0, 50, 0, 0, 50]
-    while pre[2] + pre[5] > 0 or pre[0] + pre[3] < 190:
-        p.save(i)
+
+    print('-' * 8 + "initialise" + '-' * 8, file=sys.stderr)
+    bre = pre = rp.test(p)
+    print(pre, file=sys.stderr)
+
+    while pre[0] + pre[3] < 100:
         p.train(i)
         p.save(i)
 
         re = rp.test(p)
         print(re, file=sys.stderr)
 
-        if re[0] + re[3] > pre[0] + pre[3]:
+        if re[0] + re[3] > bre[0] + bre[3]:
             print("find a better model", file=sys.stderr)
             p.save(i, "best")
+            bre = re
 
         i += 1
         pre = re
