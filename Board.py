@@ -62,7 +62,6 @@ class Board:
     @property
     def valid_place(self):
         vp = (self.board == 2).astype(np.int8)
-
         # flip the board so that the valid zone is always on the top
         if self.turns % 2:
             vp = np.flipud(vp)

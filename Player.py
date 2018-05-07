@@ -42,13 +42,9 @@ class Player:
                     pi = self.model.predict(board)[0]
                     pi[vp == 0] = -inf
                     a = np.argmax(pi)
-                fb, fa = b.fliplr(), a // 8 * 8 + (7 - a % 8)
                 board.interpret_place(a)
                 nb = board.copy
-                fnb = nb.fliplr()
-                hist.extend([
-                    (b, a, board.reward, nb), (fb, fa, board.reward, fnb)
-                ])
+                hist.append((b, a, board.reward, nb))
             else:
                 vm = board.valid_move
                 if vm.sum() < 1:
@@ -60,19 +56,9 @@ class Player:
                         pi = self.model.predict(board)[0]
                         pi[vm == 0] = -inf
                         a = np.argmax(pi)
-                    fb = b.fliplr()
-                    y = a // 64
-                    x = a % 64 // 8
-                    i = a % 64 % 8
-                    if i in (2, 3, 6, 7):
-                        i = (i + 4) % 8
-                    fa = y * 64 + (7 - x) * 8 + i
                     board.interpret_move(a)
                     nb = board.copy
-                    fnb = nb.fliplr()
-                    hist.extend([
-                        (b, a, board.reward, nb), (fb, fa, board.reward, fnb)
-                    ])
+                    hist.append((b, a, board.reward, nb))
             b = nb
 
         shuffle(hist)
