@@ -36,7 +36,7 @@ class Player:
             if board.placing:
                 vp = board.valid_place
                 if np.random.rand() <= ep:
-                    a = np.random.choice(48, p=vp / vp.sum())
+                    a = np.random.choice(64, p=vp / vp.sum())
                 else:
                     pi = self.model.predict(board)[0]
                     pi[vp == 0] = -inf
