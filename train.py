@@ -8,10 +8,12 @@ def main():
 
     p = Player(load=True)
     rp = RandomPlayer()
-    pre = [0, 0, 50, 0, 0, 50]
-    bre = [0] * 6
-    while pre[2] + pre[5] > 0 or pre[0] + pre[3] < 190:
-        p.save(i)
+
+    print('-' * 8 + "initialise" + '-' * 8, file=sys.stderr)
+    bre = pre = rp.test(p)
+    print(pre, file=sys.stderr)
+
+    while pre[0] + pre[3] < 100:
         p.train(i)
         p.save(i)
 

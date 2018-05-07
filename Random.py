@@ -47,7 +47,7 @@ class Player:
     def test(self, other):
         w_counter = Counter()
         print("White test")
-        for i in range(100):
+        for i in range(50):
             game = _Game()
             self.board.__init__()
             other.board.__init__()
@@ -75,7 +75,7 @@ class Player:
 
         b_counter = Counter()
         print("Black test")
-        for i in range(100):
+        for i in range(50):
             game = _Game()
             self.board.__init__()
             other.board.__init__()

@@ -14,10 +14,10 @@ try:
             else:
                 self.model = Sequential([
                     Dense(128, input_dim=64, activation="relu"),
-                    Dense(64, activation="relu"),
-                    Dense(64, activation="relu"),
-                    Dense(64, activation="relu"),
-                    Dense(64, activation="relu"),
+                    Dense(128, activation="relu"),
+                    Dense(128, activation="relu"),
+                    Dense(128, activation="relu"),
+                    Dense(128, activation="relu"),
                     Dense(64, activation="tanh")
                 ])
                 with open("./temp/place_config.json", 'w') as f:
@@ -33,10 +33,10 @@ try:
             else:
                 self.model = Sequential([
                     Dense(1024, input_dim=64, activation="relu"),
-                    Dense(512, activation="relu"),
-                    Dense(512, activation="relu"),
-                    Dense(512, activation="relu"),
-                    Dense(512, activation="relu"),
+                    Dense(1024, activation="relu"),
+                    Dense(1024, activation="relu"),
+                    Dense(1024, activation="relu"),
+                    Dense(1024, activation="relu"),
                     Dense(512, activation="tanh")
                 ])
                 with open("./temp/move_config.json", 'w') as f:
