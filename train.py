@@ -14,6 +14,7 @@ def main():
     print(pre, file=sys.stderr)
 
     while pre[0] + pre[3] < 100:
+        p.save()
         p.train(i)
         p.save()
 

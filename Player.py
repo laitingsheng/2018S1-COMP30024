@@ -75,7 +75,7 @@ class Player:
             return self._place()
         return self._move()
 
-    def save(self, key, suffix="curr"):
+    def save(self, suffix="curr"):
         self.model.save(suffix)
 
     def train(self, episode, decay=0.95):
