@@ -6,7 +6,7 @@ from Random import Player as RandomPlayer
 def main():
     i = 1
 
-    p = Player()
+    p = Player(load=True)
     rp = RandomPlayer()
 
     print('-' * 8 + "initialise" + '-' * 8, file=sys.stderr)
