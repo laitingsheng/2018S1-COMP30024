@@ -1,3 +1,4 @@
+import math
 import numpy as np
 
 
@@ -33,7 +34,14 @@ class Board:
     @property
     def reward(self):
         type = self.turns % 2
-        return self.n_pieces[type] - self.n_pieces[1 - type]
+        oppo = 1 - type
+        r = self.n_pieces[type] - self.n_pieces[oppo]
+        r *= abs(r)
+        if self.n_pieces[type] > 2 and self.n_pieces[oppo] < 2:
+            r += 144
+        elif self.n_pieces[type] < 2 and self.n_pieces[oppo] > 2:
+            r -= 144
+        return math.tanh(r)
 
     @property
     def valid_place(self):
