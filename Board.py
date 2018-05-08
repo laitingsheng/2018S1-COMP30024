@@ -32,18 +32,6 @@ class Board:
                not self.placing and any(i < 2 for i in self.n_pieces)
 
     @property
-    def reward(self):
-        type = self.turns % 2
-        oppo = 1 - type
-        r = self.n_pieces[type] - self.n_pieces[oppo]
-        r *= abs(r)
-        if self.n_pieces[type] > 2 and self.n_pieces[oppo] < 2:
-            r += 144
-        elif self.n_pieces[type] < 2 and self.n_pieces[oppo] > 2:
-            r -= 144
-        return math.tanh(r)
-
-    @property
     def valid_place(self):
         vp = (self.board == 2).astype(np.int8)
         if self.turns % 2:
@@ -235,3 +223,41 @@ class Board:
         if self.turns == 24:
             self.turns = 0
             self.placing = False
+
+    def reward(self, prev):
+        type = prev.turns % 2
+        oppo = 1 - type
+        t = self.n_pieces[type]
+        o = self.n_pieces[oppo]
+
+        if self.turns == 256:
+            if t > o:
+                return 1
+            if t < 0:
+                return -1
+            return 0
+
+        if t > 2 and o < 2:
+            return 1
+        if t < 2 and o > 2:
+            return -1
+
+        t += 1
+        o += 1
+        r = t - o
+        if t > o:
+            r *= t / o
+        elif t < o:
+            r *= o / t
+
+        pt = prev.n_pieces[type]
+        po = prev.n_pieces[oppo]
+        pt += 1
+        po += 1
+        pr = pt - po
+        if pt > po:
+            pr *= pt / po
+        elif pt < po:
+            pr *= po / pt
+
+        return math.tanh(r - pr)

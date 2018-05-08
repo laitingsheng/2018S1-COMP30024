@@ -43,7 +43,7 @@ class Player:
                     a = np.argmax(pi)
                 b = board.copy
                 board.interpret_place(a)
-                hist.append((b, a, board.reward))
+                hist.append((b, a, board.reward(b)))
             else:
                 vm = board.valid_move
                 if vm.sum() < 1:
@@ -57,7 +57,7 @@ class Player:
                         a = np.argmax(pi)
                     b = board.copy
                     board.interpret_move(a)
-                    hist.append((b, a, board.reward))
+                    hist.append((b, a, board.reward(b)))
 
         s = 0
         pb, pa, pr = hist[0]
@@ -76,7 +76,7 @@ class Player:
         return self._move()
 
     def save(self, key, suffix="curr"):
-        self.model.save(key, suffix)
+        self.model.save(suffix)
 
     def train(self, episode, decay=0.95):
         print('-' * 8, "Episode", episode, '-' * 8, file=sys.stderr)
