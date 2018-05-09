@@ -16,7 +16,7 @@ class PlaceSearch:
             for dx, dy in self.board.dirs:
                 nx, ny = x + dx, y + dy
                 if self.board._inboard(nx, ny):
-                    if type == 0 and ny > 5 or type == 1 and ny < 2:
+                    if self.mine == 0 and ny > 5 or self.mine == 1 and ny < 2:
                         continue
 
                     p = board[ny][nx] // 0x10
