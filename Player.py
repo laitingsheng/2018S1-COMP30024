@@ -42,8 +42,8 @@ class Player:
             return 10000000
 
         re = cm1 * (board.n_pieces[self.mine] - board.n_pieces[self.oppo])
-        re *= max(board.n_pieces[self.mine], board.n_pieces[self.oppo])
-        re /= min(board.n_pieces[self.mine], board.n_pieces[self.oppo])
+        re *= max(board.n_pieces[self.mine], board.n_pieces[self.oppo]) + 1
+        re /= min(board.n_pieces[self.mine], board.n_pieces[self.oppo]) + 1
 
         for x, y in filter(None, board.pieces[self.mine]):
             re -= cm2 * (abs(x - 3.5) + abs(y - 3.5))
@@ -73,8 +73,8 @@ class Player:
     def _eval_place(self, board):
 
         re = cp1 * (board.n_pieces[self.mine] - board.n_pieces[self.oppo])
-        re *= max(board.n_pieces[self.mine], board.n_pieces[self.oppo])
-        re /= min(board.n_pieces[self.mine], board.n_pieces[self.oppo])
+        re *= max(board.n_pieces[self.mine], board.n_pieces[self.oppo]) + 1
+        re /= min(board.n_pieces[self.mine], board.n_pieces[self.oppo]) + 1
 
         for x, y in filter(None, board.pieces[self.mine]):
             re -= cp2 * (abs(x - 3.5) + abs(y - 3.5))
