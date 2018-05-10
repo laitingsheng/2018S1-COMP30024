@@ -97,20 +97,20 @@ class Board:
         self.pieces[t][p % 0x10] = pos
         self.n_pieces[t] += 1
 
-    def _elim(self, x, y):
-        board = self.board
-        for dx, dy in self.dirs:
-            nx, ny = x + dx, y + dy
-            if self._surrounded(nx, ny, dx, dy):
-                self._delete_rec(board[ny][nx])
-                board[ny][nx] = 0x20
-
     def _delete_rec(self, p):
         if p >= 0x20:
             return
         t = p // 0x10
         self.pieces[t][p % 0x10] = None
         self.n_pieces[t] -= 1
+
+    def _elim(self, x, y):
+        board = self.board
+        for dx, dy in self.dirs:
+            nx, ny = x + dx, y + dy
+            if self._inboard(nx, ny) and self._surrounded(nx, ny, dx, dy):
+                self._delete_rec(board[ny][nx])
+                board[ny][nx] = 0x20
 
     def _inboard(self, x, y):
         b = self.border
@@ -136,9 +136,6 @@ class Board:
         self.border = b
 
     def _surrounded(self, x, y, dx, dy):
-        if not self._inboard(x, y):
-            return False
-
         board = self.board
         t = board[y][x] // 0x10
         # ignore '-'
