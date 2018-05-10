@@ -1,3 +1,5 @@
+import math
+
 from Board import Board
 
 
@@ -35,7 +37,7 @@ class Player:
                         return True
         return False
 
-    def _eval_move(self, board, turns):
+    def _eval_move(self, board):
         if board.n_pieces[self.oppo] < 2:
             return 10000000
 
@@ -116,7 +118,7 @@ class Player:
 
     def _move_max(self, board, depth, turns, alpha, beta):
         if depth == self.depth or board.end():
-            return self._eval_move(board, turns)
+            return self._eval_move(board)
 
         depth += 1
         turns += 1
@@ -141,7 +143,7 @@ class Player:
 
     def _move_min(self, board, depth, turns, alpha, beta):
         if depth == self.depth or board.end():
-            return self._eval_move(board, turns)
+            return self._eval_move(board)
 
         depth += 1
         turns += 1
@@ -215,6 +217,12 @@ class Player:
                 if beta <= alpha:
                     return beta
         return beta
+
+    def _reward_move(self, board):
+        return self._eval_move(board)
+
+    def _reward_place(self, board):
+        return math.sqrt(self._eval_place(board))
 
     def action(self, turns):
         if self.board.count[self.mine] < 12:
