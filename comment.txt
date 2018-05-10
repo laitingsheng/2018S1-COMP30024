@@ -1,0 +1,26 @@
+The whole project was published on GitHub
+(https://github.com/laitingsheng/COMP30024AI), and the visibility of this
+repository will be set to public after the due date.
+
+The submitted version (this) is the master branch
+(https://github.com/laitingsheng/COMP30024AI/tree/master), which is equipped by
+minimax with alpha-beta pruning. The Player class and Board class in this
+branch was completely built based on Python Standard Library for fast access
+and fully utilise the lazy evaluation with Python iterator.
+
+The three other branches
+https://github.com/laitingsheng/COMP30024AI/tree/TrainDev
+https://github.com/laitingsheng/COMP30024AI/tree/TrainDevSimple
+https://github.com/laitingsheng/COMP30024AI/tree/TrainDevSimple2
+implements the Deep Q Learning (with different trials of neural networks and
+methods), but due to the limitation on dimefox, we only use four Dense layers
+and it failed to evolve, so all of these are abandoned. These branches have a
+Board class based on NumPy, which is not compatible with the master branch, so
+we didn't submit any files from these branches.
+
+There is also another repository (which will be made public after the due date
+as well)
+https://github.com/laitingsheng/watchyourback
+which implements the Monte Carlo Tree Search, but, as I said previously, we
+abolish this since the BatchNormalisation and Conv2D layers are not easy to be
+implemented with the only support from NumPy and SciPy.
