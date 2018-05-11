@@ -5,7 +5,8 @@ from Board import Board
 
 
 inf = float("inf")
-cm2 = cm3 = cp2 = cp3 = 0.5
+cm2 = cm3 = 0.5
+cp2 = cp3 = 1
 cp1 = cm1 = 3
 cp4 = cp5 = cm4 = cm5 = 2
 
