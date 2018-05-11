@@ -177,7 +177,7 @@ class Board:
             np = board[ny][nx]
             nptype = np // 0x10
 
-            if nptype in self.oppo[p]:
+            if nptype in self.oppo[ptype]:
                 if p == 0:
                     p1shrinknum += 1
                 if p == 1:
