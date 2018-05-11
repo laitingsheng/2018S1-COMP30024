@@ -107,14 +107,13 @@ class Player:
             return self._eval_move(board)
 
         depth += 1
-        turns += 1
         updated = False
         mine = self.mine
         for src, dests in board.valid_move(mine):
             for dest in dests:
                 b = board.copy()
                 b.move(*src, *dest)
-                re = self._move_min(b, depth, turns, alpha, beta)
+                re = self._move_min(b, depth, alpha, beta)
                 if re > alpha:
                     alpha = re
                     updated = True
@@ -133,7 +132,6 @@ class Player:
             return self._eval_move(board)
 
         depth += 1
-        turns += 1
         updated = False
         oppo = self.oppo
         for src, dests in board.valid_move(oppo):
@@ -171,7 +169,7 @@ class Player:
     def _place_max(self, board, depth, alpha, beta):
         mine = self.mine
         if board.count[mine] == 12:
-            return self._move_max(board, depth, 0, alpha, beta)
+            return self._move_max(board, depth, alpha, beta)
 
         if depth == self.depth:
             return self._eval_place(board)
@@ -190,7 +188,7 @@ class Player:
     def _place_min(self, board, depth, alpha, beta):
         oppo = self.oppo
         if board.count[oppo] == 12:
-            return self._move_min(board, depth, 0, alpha, beta)
+            return self._move_min(board, depth, alpha, beta)
 
         if depth == self.depth:
             return self._eval_place(board)

@@ -1,4 +1,5 @@
 from itertools import product
+import json
 from random import shuffle
 
 
@@ -65,6 +66,8 @@ class Board:
     mappings = 'O', '@', '-', 'X', '#'
     oppo = (1, 3), (0, 3)
     turn_thres = 128, 192
+
+    place_book = json.load(open("place_book.json", 'r'))
 
     def __init__(self):
         # initialise of board
@@ -250,10 +253,9 @@ class Board:
         if self.count[type] < 1:
             if self.count[oppo] < 1:
                 return ((4, 4),)
-            return (
-                (x, y) for x, y in product(range(3, 5), range(3, 5))
-                if self.board[y][x] == 0x20
-            )
+        sboard = str(self)
+        if sboard in self.place_book:
+            return self.place_book[sboard]
         return PlaceSearch(self, type)
 
     def valid_move(self, type):
