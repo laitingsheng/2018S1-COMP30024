@@ -5,8 +5,7 @@ from Board import Board
 
 
 inf = float("inf")
-cm2 = cm3 = 0.5
-cp2 = cp3 = 1
+cm2 = cm3 = cp2 = cp3 = 1
 cp1 = cm1 = 3
 cp4 = cp5 = cm4 = cm5 = 2
 
@@ -49,7 +48,7 @@ class Player:
             re *= (oppo + 1) / (mine + 1)
 
         for x, y in filter(None, board.pieces[self.mine]):
-            re -= cm2 * (abs(x - 3.5) + abs(y - 3.5))
+            re += cm2 * (7 - abs(x - 3.5) - abs(y - 3.5))
             psur = board.potential_surrounded(x, y)
             used_pieces = psur[1]
             psurrpoint = psur[2]
@@ -61,7 +60,7 @@ class Player:
                     re -= cm4
 
         for x, y in filter(None, board.pieces[self.oppo]):
-            re += cm3 * (abs(x - 3.5) + abs(y - 3.5))
+            re -= cm3 * (7 - abs(x - 3.5) - abs(y - 3.5))
             psur = board.potential_surrounded(x, y)
             used_pieces = psur[1]
             psurrpoint = psur[2]
