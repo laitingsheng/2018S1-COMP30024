@@ -173,9 +173,11 @@ class Board:
                              (6 - b, b, 5 - b, b)):
             p = board[y][x]
             ptype = p // 0x10
-
             np = board[ny][nx]
             nptype = np // 0x10
+
+            if ptype > 1:
+                continue
 
             if nptype in self.oppo[ptype]:
                 if p == 0:

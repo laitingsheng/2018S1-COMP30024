@@ -31,14 +31,9 @@ class Player:
         if board.n_pieces[self.oppo] < 2:
             return inf
 
-        mine = board.n_pieces[self.mine]
-        oppo = board.n_pieces[self.mine]
-        p1s, p2s = board.simu_shrink()
-        mine -= p1s
-        oppo -= p2s
-        re = cm1 * (mine - oppo)
-        re *= max(mine, oppo) + 1
-        re /= min(mine, oppo) + 1
+        re = cm1 * (board.n_pieces[self.mine] - board.n_pieces[self.oppo])
+        re *= max(board.n_pieces[self.mine], board.n_pieces[self.oppo]) + 1
+        re /= min(board.n_pieces[self.mine], board.n_pieces[self.oppo]) + 1
 
         for x, y in filter(None, board.pieces[self.mine]):
             re -= cm2 * (abs(x - 3.5) + abs(y - 3.5))
