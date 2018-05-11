@@ -141,6 +141,58 @@ class Board:
 
         self.border = b
 
+    def simu_shrink(self):
+        p1shrinknum = 0
+        p2shrinknum = 0
+        b = self.border
+        board = self.board
+
+        # first shrink the edges
+        for i in range(b, 7 - b):
+            for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
+                p = board[y][x]
+                ptype = p // 0x10
+                if p == 0:
+                    p1shrinknum += 1
+                if p == 1:
+                    p2shrinknum += 1
+
+        # determine if the shrinking leads to eliminations of current pieces
+        b += 1
+        for x, y in ((b, b), (b, 7 - b), (7 - b, 7 - b), (7 - b, b)):
+            p = board[y][x]
+            ptype = p // 0x10
+            if p == 0:
+                p1shrinknum += 1
+            if p == 1:
+                p2shrinknum += 1
+
+        for x, y, nx, ny in ((b, b + 1, b, b + 2),
+                             (b + 1, 7 - b, b + 2, 7 - b),
+                             (7 - b, 6 - b, 7 - b, 5 - b),
+                             (6 - b, b, 5 - b, b)):
+            p = board[y][x]
+            ptype = p // 0x10
+
+            np = board[ny][nx]
+            nptype = np // 0x10
+
+            if nptype in self.oppo[p]:
+                if p == 0:
+                    p1shrinknum += 1
+                if p == 1:
+                    p2shrinknum += 1
+
+        turn = self.turns
+        if turn > 128:
+            turn -= 128
+            shrinkturn = 64
+        else:
+            shrinkturn = 128
+
+        weight = (turn / shrinkturn) ** 4
+        return (p1shrinknum * weight, p2shrinknum * weight)
+
     def _surrounded(self, x, y, dx, dy):
         board = self.board
         t = board[y][x] // 0x10
