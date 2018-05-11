@@ -11,7 +11,7 @@ cp4 = cp5 = cm4 = cm5 = 2
 
 
 class Player:
-    __slots__ = "board", "last_oppo_place", "depth", "mine", "oppo"
+    __slots__ = "board", "last_oppo_place", "depth", "history", "mine", "oppo"
 
     def __init__(self, colour, depth=4):
         if colour == "white":
@@ -24,6 +24,8 @@ class Player:
         self.board = Board()
         self.depth = 1 if depth < 1 else depth
         self.last_oppo_place = None
+
+        self.history = {}
 
     def _eval_move(self, board):
         if board.n_pieces[self.oppo] < 2:
@@ -88,6 +90,13 @@ class Player:
 
     def _move(self):
         board = self.board
+
+        sboard = str(board)
+        if sboard in self.history:
+            s, d = self.history[sboard]
+            board.move(*s, *d)
+            return s, d
+
         alpha = -inf
         s = None
         mine = self.mine
@@ -104,7 +113,8 @@ class Player:
         if s is None:
             return None
 
-        self.board.move(*s, *d)
+        self.history[sboard] = (s, d)
+        board.move(*s, *d)
         return s, d
 
     def _move_max(self, board, depth, alpha, beta):
@@ -160,6 +170,13 @@ class Player:
     def _place(self):
         board = self.board
         mine = self.mine
+
+        sboard = str(board)
+        if sboard in self.history:
+            p = self.history[sboard]
+            board.place(*p, mine)
+            return p
+
         alpha = -inf
         for pos in board.valid_place(mine):
             b = board.copy()
@@ -168,6 +185,7 @@ class Player:
             if re > alpha:
                 alpha = re
                 p = pos
+        self.history[str(board)] = p
         board.place(*p, mine)
         return p
 
@@ -227,6 +245,8 @@ class Player:
     def action(self, turns):
         if self.board.count[self.mine] < 12:
             return self._place()
+        if turns < 2 and self.board.count[self.mine] == 12:
+            self.history = {}
         return self._move()
 
     def update(self, action):
