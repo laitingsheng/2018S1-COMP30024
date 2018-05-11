@@ -8,6 +8,7 @@ cm2 = cm3 = cp2 = cp3 = 0.5
 cp1 = cm1 = 3
 cp4 = cp5 = cm4 = cm5 = 2
 
+
 class Player:
     __slots__ = "board", "depth", "mine", "oppo"
 
@@ -22,24 +23,9 @@ class Player:
         self.board = Board()
         self.depth = 1 if depth < 1 else depth
 
-    def _reachable(self, board, player, x, y, used_piece):
-        for dx, dy in ((1, 0), (0, 1), (0, -1), (-1, 0)):
-            nx, ny = x + dx, y + dy
-            if board._inboard(nx, ny):
-                p = board.board[ny][nx]
-                if p // 0x10 == player:
-                    return True
-            nx, ny = nx + dx, ny + dy
-            if board._inboard(nx, ny):
-                np = board.board[ny][nx]
-                if ((p // 0x10 == player) or (p // 0x10 == 1 - player)) and \
-                        np != used_piece and np // 0x10 == player:
-                        return True
-        return False
-
     def _eval_move(self, board):
         if board.n_pieces[self.oppo] < 2:
-            return 10000000
+            return inf
 
         re = cm1 * (board.n_pieces[self.mine] - board.n_pieces[self.oppo])
         re *= max(board.n_pieces[self.mine], board.n_pieces[self.oppo]) + 1
@@ -51,8 +37,10 @@ class Player:
             used_pieces = psur[1]
             psurrpoint = psur[2]
             for i in range(len(used_pieces)):
-                if self._reachable(board, self.oppo, psurrpoint[i][0],
-                                   psurrpoint[i][1], used_pieces[i]):
+                if self._reachable(
+                    board, self.oppo, psurrpoint[i][0], psurrpoint[i][1],
+                    used_pieces[i]
+                ):
                     re -= cm4
 
         for x, y in filter(None, board.pieces[self.oppo]):
@@ -61,13 +49,12 @@ class Player:
             used_pieces = psur[1]
             psurrpoint = psur[2]
             for i in range(len(used_pieces)):
-                if self._reachable(board, self.mine, psurrpoint[i][0],
-                                   psurrpoint[i][1], used_pieces[i]):
+                if self._reachable(
+                    board, self.mine, psurrpoint[i][0], psurrpoint[i][1],
+                    used_pieces[i]
+                ):
                     re += cm5
 
-        # print("evaluating state:")
-        # print(repr(board))
-        # print("score is " + str(re))
         return re
 
     def _eval_place(self, board):
@@ -79,20 +66,17 @@ class Player:
         for x, y in filter(None, board.pieces[self.mine]):
             re -= cp2 * (abs(x - 3.5) + abs(y - 3.5))
             for psx, psy in board.potential_surrounded(x, y)[2]:
-                if (self.oppo == 0 and psy < 6) or\
-                            (self.oppo == 1 and psy > 1):
+                if (self.oppo == 0 and psy < 6) or \
+                   (self.oppo == 1 and psy > 1):
                         re -= cp4
 
         for x, y in filter(None, board.pieces[self.oppo]):
             re += cp3 * (abs(x - 3.5) + abs(y - 3.5))
             for psx, psy in board.potential_surrounded(x, y)[2]:
-                if (self.mine == 0 and psy < 6) or\
-                            (self.mine == 1 and psy > 1):
+                if (self.mine == 0 and psy < 6) or \
+                   (self.mine == 1 and psy > 1):
                         re += cp5
 
-        # print("evaluating state:")
-        # print(repr(board))
-        # print("score is " + str(re))
         return re
 
     def _move(self, turns):
@@ -218,11 +202,20 @@ class Player:
                     return beta
         return beta
 
-    def _reward_move(self, board):
-        return self._eval_move(board)
-
-    def _reward_place(self, board):
-        return math.sqrt(self._eval_place(board))
+    def _reachable(self, board, player, x, y, used_piece):
+        for dx, dy in ((1, 0), (0, 1), (0, -1), (-1, 0)):
+            nx, ny = x + dx, y + dy
+            if board._inboard(nx, ny):
+                p = board.board[ny][nx]
+                if p // 0x10 == player:
+                    return True
+            nx, ny = nx + dx, ny + dy
+            if board._inboard(nx, ny):
+                np = board.board[ny][nx]
+                if ((p // 0x10 == player) or (p // 0x10 == 1 - player)) and \
+                   np != used_piece and np // 0x10 == player:
+                    return True
+        return False
 
     def action(self, turns):
         if self.board.count[self.mine] < 12:

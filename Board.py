@@ -1,4 +1,5 @@
 from itertools import product
+from random import shuffle
 
 
 class PlaceSearch:
@@ -12,7 +13,9 @@ class PlaceSearch:
     def __iter__(self):
         board = self.board.board
         searched = [[False] * 8 for _ in range(8)]
-        for x, y in filter(None, self.board.pieces[self.mine]):
+        for x, y in filter(
+            None, self.board.pieces[self.mine] + self.board.pieces[self.oppo]
+        ):
             for dx, dy in self.board.dirs:
                 nx, ny = x + dx, y + dy
                 if self.board._inboard(nx, ny):
@@ -243,7 +246,10 @@ class Board:
 
     def valid_place(self, type):
         board = self.board
+        oppo = 1 - type
         if self.count[type] < 1:
+            if self.count[oppo] < 1:
+                return ((4, 4),)
             return (
                 (x, y) for x, y in product(range(3, 5), range(3, 5))
                 if self.board[y][x] == 0x20

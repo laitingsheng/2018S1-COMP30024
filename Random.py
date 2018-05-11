@@ -13,9 +13,11 @@ class Player:
             self.mine = 1
             self.oppo = 0
 
+        self.board = Board()
+
     def _move(self):
         moves = [
-            (src, dest) for src, dests in self.board.valid_move
+            (src, dest) for src, dests in self.board.valid_move(self.mine)
             for dest in dests
         ]
         if not moves:
@@ -23,12 +25,12 @@ class Player:
         return choice(moves)
 
     def _place(self):
-        return choice(list(self.board.valid_place))
+        return choice(list(self.board.valid_place(self.mine)))
 
     def action(self, turns):
-        if self.board.count[]:
+        if self.board.count[self.mine] < 12:
             action = self._place()
-            self.board.place(*action)
+            self.board.place(*action, self.mine)
             return action
         action = self._move()
         if action is None:
@@ -39,8 +41,8 @@ class Player:
         return action
 
     def update(self, action):
-        if self.board.placing:
-            self.board.place(*action)
+        if self.board.count[self.oppo] < 12:
+            self.board.place(*action, self.oppo)
         elif action is None:
             self.board.forfeit_move()
         else:
