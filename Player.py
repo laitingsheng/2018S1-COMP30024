@@ -93,14 +93,14 @@ class Player:
             re *= (oppo + 1) / (mine + 1)
 
         for x, y in filter(None, board.pieces[self.mine]):
-            re -= cp2 * (abs(x - 3.5) + abs(y - 3.5))
+            re += cp2 * (7 - abs(x - 3.5) - abs(y - 3.5))
             for psx, psy in board.potential_surrounded(x, y)[2]:
                 if (self.oppo == 0 and psy < 6) or \
                    (self.oppo == 1 and psy > 1):
                         re -= cp4
 
         for x, y in filter(None, board.pieces[self.oppo]):
-            re += cp3 * (abs(x - 3.5) + abs(y - 3.5))
+            re -= cp3 * (7 - abs(x - 3.5) - abs(y - 3.5))
             for psx, psy in board.potential_surrounded(x, y)[2]:
                 if (self.mine == 0 and psy < 6) or \
                    (self.mine == 1 and psy > 1):
