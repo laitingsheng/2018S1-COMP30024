@@ -1,4 +1,5 @@
 import math
+from collections import deque
 
 from Board import Board
 
@@ -10,7 +11,7 @@ cp4 = cp5 = cm4 = cm5 = 2
 
 
 class Player:
-    __slots__ = "board", "depth", "mine", "oppo"
+    __slots__ = "board", "last_oppo_place", "depth", "mine", "oppo"
 
     def __init__(self, colour, depth=4):
         if colour == "white":
@@ -22,6 +23,7 @@ class Player:
 
         self.board = Board()
         self.depth = 1 if depth < 1 else depth
+        self.last_oppo_place = None
 
     def _eval_move(self, board):
         if board.n_pieces[self.oppo] < 2:
@@ -79,7 +81,7 @@ class Player:
 
         return re
 
-    def _move(self, turns):
+    def _move(self):
         board = self.board
         alpha = -inf
         s = None
@@ -88,7 +90,7 @@ class Player:
             for dest in dests:
                 b = board.copy()
                 b.move(*src, *dest)
-                re = self._move_min(b, 1, turns, alpha, inf)
+                re = self._move_min(b, 1, alpha, inf)
                 if re > alpha:
                     alpha = re
                     s, d = src, dest
@@ -100,7 +102,7 @@ class Player:
         self.board.move(*s, *d)
         return s, d
 
-    def _move_max(self, board, depth, turns, alpha, beta):
+    def _move_max(self, board, depth, alpha, beta):
         if depth == self.depth or board.end():
             return self._eval_move(board)
 
@@ -121,11 +123,12 @@ class Player:
 
         # forfeit move
         if not updated:
-            return self._move_min(board, depth, turns, alpha, beta)
+            board.forfeit()
+            return self._move_min(board, depth, alpha, beta)
 
         return alpha
 
-    def _move_min(self, board, depth, turns, alpha, beta):
+    def _move_min(self, board, depth, alpha, beta):
         if depth == self.depth or board.end():
             return self._eval_move(board)
 
@@ -137,7 +140,7 @@ class Player:
             for dest in dests:
                 b = board.copy()
                 b.move(*src, *dest)
-                re = self._move_max(b, depth, turns, alpha, beta)
+                re = self._move_max(b, depth, alpha, beta)
                 if re < beta:
                     beta = re
                     updated = True
@@ -146,7 +149,8 @@ class Player:
 
         # forfeit move
         if not updated:
-            return self._move_min(board, depth, turns, alpha, beta)
+            board.forfeit()
+            return self._move_min(board, depth, alpha, beta)
 
         return beta
 
@@ -220,7 +224,7 @@ class Player:
     def action(self, turns):
         if self.board.count[self.mine] < 12:
             return self._place()
-        return self._move(turns)
+        return self._move()
 
     def update(self, action):
         board = self.board
