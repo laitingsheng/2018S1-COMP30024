@@ -14,6 +14,8 @@ class PlaceSearch:
     def __iter__(self):
         board = self.board.board
         searched = [[False] * 8 for _ in range(8)]
+
+        # search around all pieces
         for x, y in filter(
             None, self.board.pieces[self.mine] + self.board.pieces[self.oppo]
         ):
@@ -67,6 +69,7 @@ class Board:
     oppo = (1, 3), (0, 3)
     turn_thres = 128, 192
 
+    # book for placing in the first step
     place_book = json.load(open("place_book.json", 'r'))
 
     def __init__(self):
@@ -112,6 +115,8 @@ class Board:
 
     def _elim(self, x, y):
         board = self.board
+
+        # check elimination for every directions
         for dx, dy in self.dirs:
             nx, ny = x + dx, y + dy
             if self._inboard(nx, ny) and self._surrounded(nx, ny, dx, dy):
@@ -141,60 +146,6 @@ class Board:
 
         self.border = b
 
-    def simu_shrink(self):
-        p1shrinknum = 0
-        p2shrinknum = 0
-        b = self.border
-        board = self.board
-
-        # first shrink the edges
-        for i in range(b, 7 - b):
-            for x, y in ((b, i), (7 - i, b), (7 - b, 7 - i), (i, 7 - b)):
-                p = board[y][x]
-                ptype = p // 0x10
-                if p == 0:
-                    p1shrinknum += 1
-                if p == 1:
-                    p2shrinknum += 1
-
-        # determine if the shrinking leads to eliminations of current pieces
-        b += 1
-        for x, y in ((b, b), (b, 7 - b), (7 - b, 7 - b), (7 - b, b)):
-            p = board[y][x]
-            ptype = p // 0x10
-            if p == 0:
-                p1shrinknum += 1
-            if p == 1:
-                p2shrinknum += 1
-
-        for x, y, nx, ny in ((b, b + 1, b, b + 2),
-                             (b + 1, 7 - b, b + 2, 7 - b),
-                             (7 - b, 6 - b, 7 - b, 5 - b),
-                             (6 - b, b, 5 - b, b)):
-            p = board[y][x]
-            ptype = p // 0x10
-            np = board[ny][nx]
-            nptype = np // 0x10
-
-            if ptype > 1:
-                continue
-
-            if nptype in self.oppo[ptype]:
-                if p == 0:
-                    p1shrinknum += 1
-                if p == 1:
-                    p2shrinknum += 1
-
-        turn = self.turns
-        if turn > 128:
-            turn -= 128
-            shrinkturn = 64
-        else:
-            shrinkturn = 128
-
-        weight = (turn / shrinkturn) ** 4
-        return (p1shrinknum * weight, p2shrinknum * weight)
-
     def _surrounded(self, x, y, dx, dy):
         board = self.board
         t = board[y][x] // 0x10
@@ -202,6 +153,7 @@ class Board:
         if t > 1:
             return False
 
+        # check left and right
         x1, y1 = x + dx, y + dy
         if not self._inboard(x1, y1):
             return False
@@ -246,6 +198,7 @@ class Board:
         board[sy][sx], board[dy][dx] = board[dy][dx], board[sy][sx]
         p = board[dy][dx]
 
+        # check if itself was eliminated
         self._elim(dx, dy)
         if self._surrounded(dx, dy, 1, 0) or self._surrounded(dx, dy, 0, 1):
             board[dy][dx] = 0x20
@@ -307,9 +260,12 @@ class Board:
         if self.count[type] < 1:
             if self.count[oppo] < 1:
                 return ((4, 4),)
+
+        # query the book if possible
         sboard = str(self)
         if sboard in self.place_book:
             return self.place_book[sboard]
+
         return PlaceSearch(self, type)
 
     def valid_move(self, type):
